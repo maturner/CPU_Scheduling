@@ -330,6 +330,8 @@ void displayInfo(std::vector<Process> p) {
  */
 int main(int argc, char** argv) {
 
+	std::cout << argc << std::endl;
+
 	// command line arguments
 	bool t = false;
 	bool v = false;
@@ -348,8 +350,11 @@ int main(int argc, char** argv) {
 	// given overhead times for context switching
 	unsigned int threadOverhead, processOverhead;
 
+	// get the filename -> last argument in the command line
+	char* f = argv[argc - 1];
+	std::string file = f;
+
 	// read in the text file and store data in variables
-	std::string file = "input.txt";
 	auto odata = readFile(file);
 	processes = odata.p;
 	threadOverhead = odata.t_o;
