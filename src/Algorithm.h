@@ -13,13 +13,26 @@
  */
 class Algorithm {
 
+private:
+
+	int threadOverhead;
+	int processOverhead;
+	Thread running;
+
 public:
+	
 	/**
  	 Algorithm:
 	 a constructor that allows the main proggram to make use of the following
 	 scheduling algorithms
 	 */
-	Algorithm();
+	Algorithm(int t, int p);
+
+	/**
+	 getter and setter for the running thread
+	 */
+	Thread getRunningThread() { return running; }
+	void setRunningThread(Thread t) { running = t; }
 
 	/**
  	 firstComeFirstServe:

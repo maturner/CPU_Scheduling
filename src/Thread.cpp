@@ -5,7 +5,7 @@
  Thread:
  constructor function to build a new thread
  */
-Thread::Thread(int i, int p, int t, const char* s, std::vector<Burst> b) {
+Thread::Thread(int i, int p, int t, std::string s, std::vector<Burst> b) {
 	threadID = i;
 	processID = p;
 	arrivalTime = t;
@@ -22,6 +22,14 @@ Thread::Thread(int i, int p, int t, const char* s, std::vector<Burst> b) {
 			numIOBursts++;
 	}
 
+}
+
+/**
+ Thread:
+ default constructor
+ */
+Thread::Thread() {
+	// do nothing
 }
 
 /*

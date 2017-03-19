@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <string>
+
 #include "Burst.h"
 
 /**
@@ -17,7 +19,7 @@ private:
 	int startTime;
 	int numIOBursts;
 	int numCPUBursts;
-	const char* threadState;
+	std::string threadState;
 	std::vector<Burst> bursts;
 
 
@@ -28,7 +30,13 @@ public:
 	 Thread:
 	 constructor function to build a new thread
 	 */
-	Thread(int i, int p, int t, const char* s, std::vector<Burst> b);
+	Thread(int i, int p, int t, std::string s, std::vector<Burst> b);
+
+	/**
+	 Thread:
+	 default constructor
+	 */
+	Thread();
 
 	/*
 	 getter functions:
@@ -40,7 +48,7 @@ public:
 	int getStartTime() { return startTime; }
 	int getNumIOBursts() { return numIOBursts; }
 	int getNumCPUBursts() { return numCPUBursts; }
-	const char* getThreadState() { return threadState; }
+	std::string getThreadState() { return threadState; }
 	std::vector<Burst> getCPUBursts();
 	std::vector<Burst> getIOBursts();
 
@@ -49,6 +57,7 @@ public:
 	 set variable values for display functions
 	 */
 	void setStartTime(int t) { startTime = t; }
+	void setThreadState(std::string s) { threadState = s; }
 
 	/**
 	 addBurst:

@@ -11,7 +11,6 @@
 #include <fstream>
 #include <string>
 #include <getopt.h>
-#include <cstdlib>
 #include <cstring>
 #include <queue>
 
@@ -172,13 +171,13 @@ Process getProcess(std::ifstream &inFile) {
  readFile:
  returns a struct containing all the information read in from the text file
  */
-struct overhead {
-	std::vector<Process> p;
-	unsigned int t_o;
-	unsigned int p_o;
+struct fileData {
+	std::vector<Process> processes;
+	unsigned int threadOverhead;
+	unsigned int processOverhead;
 };
 
-overhead readFile(std::string inputFile) {
+fileData readFile(std::string inputFile) {
 
 	// open a new file stream object
 	std::ifstream inFile(inputFile);
@@ -330,8 +329,6 @@ void displayInfo(std::vector<Process> p) {
  */
 int main(int argc, char** argv) {
 
-	std::cout << argc << std::endl;
-
 	// command line arguments
 	bool t = false;
 	bool v = false;
@@ -342,7 +339,6 @@ int main(int argc, char** argv) {
 	get_flag(argc, argv, &t, &v, &a, &h);
 
 	// scheduling variables
-	Algorithm algorithm;				// an algorithm object to be used for scheduling
 	std::vector<Process> processes;		// a vector that holds the data from the input file
 	std::queue<Event> events;			// the event queue that stores all changes to the system
 	std::queue<Thread> readyQueue;		// the ready queue that stores the processes that are ready
@@ -355,10 +351,13 @@ int main(int argc, char** argv) {
 	std::string file = f;
 
 	// read in the text file and store data in variables
-	auto odata = readFile(file);
-	processes = odata.p;
-	threadOverhead = odata.t_o;
-	processOverhead = odata.p_o;
+	auto fileData = readFile(file);
+	processes = fileData.processes;
+	threadOverhead = fileData.threadOverhead;
+	processOverhead = fileData.processOverhead;
+
+	// create an object for scheduling
+	Algorithm algorithm(threadOverhead, processOverhead);
 
 	//**********************************************************************
 	// Main Time loop:
@@ -407,7 +406,7 @@ int main(int argc, char** argv) {
 	displayInfo(processes);
 
 	// display additional information based on user input flags
-	if(t) ; displayProcessInfo(processes);
+	//if(t) ; displayProcessInfo(processes);
 	if(v) ; displayEventInfo(events);
 
 	printf("\n\n\nEverything seemed to run okey doky!\n");

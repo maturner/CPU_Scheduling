@@ -1,28 +1,34 @@
 #include "Algorithm.h"
 
+#include <iostream>
 
 /**
  Algorithm:
  a constructor that allows the main proggram to make use of the following
  scheduling algorithms
  */
-Algorithm::Algorithm() {
-	// nothing to do here
+Algorithm::Algorithm(int t, int p) {
+	threadOverhead = t;
+	processOverhead = p;
 }
 
 
 /**
- Burst:
- constructor function to build a new burst
+ firstComeFirstServe:
+ a function to schedule the next process to run
  */
-void Algorithm::firstComeFirstServe(std::queue<Thread> &t, std::queue<Event> &e, int time) {
+void Algorithm::firstComeFirstServe(std::queue<Thread> &readyQueue, std::queue<Event> &e, int time) {
 	
-	// 
-	while(!t.empty()) {
+	// special case: time = 0
+	if(readyQueue.size() > 0 && time == 0) {
 		
-		Thread thread = t.front();
+		// set the running process to the first thread to arrive
+		running = readyQueue.front();
+		readyQueue.pop();
 
-		t.pop();
+		// change its state to running
+		running.setThreadState("RUNNING");
+
 
 	}
 	
