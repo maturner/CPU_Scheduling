@@ -6,6 +6,7 @@
 #include "Process.h"
 #include "Thread.h"
 #include "Event.h"
+#include "Scheduler.h"
 
 /**
  Simulator:
@@ -28,6 +29,7 @@ private:
 	std::queue<Thread> readyQueue;
 
 	Thread currentThread;
+	Scheduler schedule;
 
 public:
 

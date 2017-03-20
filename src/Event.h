@@ -51,9 +51,11 @@ public:
 
 	/**
 	 getter functions:
-
 	 */
 	int getTime() const { return time; }
+	int getProcessID() { return processID; }
+	int getThreadID() { return threadID; }
+	char* getPriority() { return tPriority; }
 	int getType() { return eventType; }
 
 
@@ -68,6 +70,6 @@ public:
 	 overloaded operator to allow for sorting of events by time
 	 */
 	bool operator<(const Event &e1) const;
-	
+
 
 };

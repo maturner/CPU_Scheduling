@@ -114,6 +114,20 @@ void Simulator::run() {
  */
 void Simulator::threadArrived(Event e) {
 
+	// if no running thread:
+	//if(currentThread == NULL) {
+
+		// get ready queue size
+
+		// invoke process dispatch
+		Event newEvent(EventTypes::DISPATCHER_INVOKED,
+							e.getTime(),
+							e.getProcessID(),
+							e.getThreadID(),
+							e.getPriority(),
+							"Selected from # threads; will run to completion of burst");
+		events.push(newEvent);
+	//}
 
 /*
 	Event e(EventTypes::DISPATCHER_INVOKED,
