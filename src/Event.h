@@ -3,7 +3,7 @@
 #include "Process.h"
 #include "Thread.h"
 
-enum EventNames {
+enum EventTypes {
 	THREAD_ARRIVED,
 	THREAD_DISPATCH_COMPLETED,
 	PROCESS_DISPATCH_COMPLETED,
@@ -14,7 +14,7 @@ enum EventNames {
 	DISPATCHER_INVOKED
 };
 
-static const char* Names[] = {
+static const char* Types[] = {
 	"THREAD_ARRIVED",
 	"THREAD_DISPATCH_COMPLETED",
 	"PROCESS_DISPATCH_COMPLETED",
@@ -33,7 +33,7 @@ class Event {
 
 // private class variables and functions
 private:
-	int eventName;
+	int eventType;
 	int time;
 	int processID;
 	int threadID;
@@ -50,9 +50,24 @@ public:
 	Event(int n, int t, int pid, int tid, char* p, char* m);
 
 	/**
+	 getter functions:
+
+	 */
+	int getTime() const { return time; }
+	int getType() { return eventType; }
+
+
+	/**
 	 toString:
 	 prints out the required information regarding the Event
 	 */
 	void toString();
+
+	/**
+	 operator <:
+	 overloaded operator to allow for sorting of events by time
+	 */
+	bool operator<(const Event &e1) const;
+	
 
 };

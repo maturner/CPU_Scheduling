@@ -9,7 +9,7 @@
  */
 //Event::Event(char* n, int t, Process p, Thread th) {
 Event::Event(int n, int t, int pid, int tid, char* p, char* m) {
-	eventName = n;
+	eventType = n;
 	time = t;
 	processID = pid;
 	threadID = tid;
@@ -26,7 +26,16 @@ Event::Event(int n, int t, int pid, int tid, char* p, char* m) {
 void Event::toString() {
 
 	printf("\nAt time %d", time);
-	printf("\n\t%s", Names[eventName]);
+	printf("\n\t%s", Types[eventType]);
 	printf("\n\tThread %d in Process %d [%s]", threadID, processID, tPriority);
 	printf("\n\t%s", message);
+}
+
+/**
+ operator <:
+ overloaded operator to allow for sorting of events by time
+ */
+bool Event::operator<(const Event &e1) const {
+
+	return e1.getTime() < time;
 }

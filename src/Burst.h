@@ -31,7 +31,11 @@ public:
 	 */
 	Burst(int l, const char* t);
 
-
+	/**
+	 decrement:
+	 decrements the burst length by a set amount upon completion of a burst
+	 */
+	void decrement(int i);
 
 };
 

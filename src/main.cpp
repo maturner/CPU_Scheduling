@@ -18,7 +18,7 @@
 #include "Burst.h"
 #include "Event.h"
 #include "Thread.h"
-#include "Algorithm.h"
+#include "Simulator.h"
 
 
 /**
@@ -226,48 +226,6 @@ void displayProcessInfo(std::vector<Process> p) {
 }
 
 /**
- displayEventInfo:
- prints out the information regarding each event
- */
-void displayEventInfo(std::queue<Event> e) {
-
-	printf("\nTimeline of Events:");
-
-	// display each event in the queue
-	while(!e.empty()) {
-		Event event = e.front();
-		event.toString();
-		e.pop();
-		printf("\n");
-	}
-}
-
-
-/**
- displayEventInfo:
- prints out the information regarding each event
- */
-void displayReadyQueue(std::queue<Thread> t) {
-
-	int counter = 0;
-
-	printf("\nCurrent Ready Queue:\n");
-	while(!t.empty()) {
-		Thread thread = t.front();
-		
-		printf("%d - P%dT%d: arrived %d, CPU %d, IO %d\n",
-				counter,
-				thread.getProcessID(),
-				thread.getThreadID(),
-				thread.getArrivalTime(),
-				thread.getNumCPUBursts(),
-				thread.getNumIOBursts());
-		t.pop();
-		counter++;
-	}
-}
-
-/**
  displayInfo:
  prints out the information regarding each process
  */
@@ -357,57 +315,17 @@ int main(int argc, char** argv) {
 	processOverhead = fileData.processOverhead;
 
 	// create an object for scheduling
-	Algorithm algorithm(threadOverhead, processOverhead);
+	Simulator sim(processes, threadOverhead, processOverhead);
 
-	//**********************************************************************
-	// Main Time loop:
-	int time = 0;
-	while (time  < 1000) {
-
-
-		// check for new process coming in
-		for(int i = 0; i < processes.size(); i++) {
-			
-			// check for new threads from that process
-			std::vector<Thread> threads = processes[i].getProcessThreads();
-			for(int j = 0; j < threads.size(); j++) {
-				
-				// if a new thread has arrived:
-				if(threads[j].getArrivalTime() == time) {
-
-					// add an event to the event queue
-					Event e(EventNames::THREAD_ARRIVED, 
-							time, 
-							processes[i].getProcessID(), 
-							threads[j].getThreadID(), 
-							processes[i].getPriorityType(), 
-							"Thread Arrived.");
-					events.push(e);
-
-					// add the thread to the ready queue
-					readyQueue.push(threads[j]);
-				}
-			}
-		}
-
-		// check thee state of the system and change if necessary
-		algorithm.firstComeFirstServe(readyQueue, events, time);
-
-
-
-		time++;
-	}
-	//**********************************************************************
-
-	// display ready queue
-	displayReadyQueue(readyQueue);
+	// call a scheduling scheme
+	sim.run();
 
 	// display basic system information
 	displayInfo(processes);
 
 	// display additional information based on user input flags
-	//if(t) ; displayProcessInfo(processes);
-	if(v) ; displayEventInfo(events);
+	if(t) ; displayProcessInfo(processes);
+	//if(v) ; displayEventInfo(events);
 
 	printf("\n\n\nEverything seemed to run okey doky!\n");
 	return EXIT_SUCCESS;

@@ -1,0 +1,150 @@
+#include <iostream>
+
+#include "Simulator.h"
+#include "Event.h"
+
+/**
+ Simulator:
+ a constructor that allows the main proggram to make use of the following
+ scheduling algorithms
+ */
+Simulator::Simulator(std::vector<Process> p, int to, int po) {
+	
+	// initialize class variables
+	processes = p;
+	threadOverhead = to;
+	processOverhead = po;
+
+	// initialize the event queue
+	for(int i = 0; i < processes.size(); i++) {
+		
+		// check for new threads from that process
+		std::vector<Thread> threads = processes[i].getProcessThreads();
+		for(int j = 0; j < threads.size(); j++) {
+
+			// change the thread state
+			threads[i].setThreadState("READY");
+
+			// add an event to the event queue
+			Event e(EventTypes::THREAD_ARRIVED, 
+					threads[j].getArrivalTime(), 
+					processes[i].getProcessID(), 
+					threads[j].getThreadID(), 
+					processes[i].getPriorityType(), 
+					"Transitioned from NEW to READY");
+			events.push(e);
+		}
+	}
+}
+
+
+/**
+ firstComeFirstServe:
+ a function to schedule the next process to run
+ */
+void Simulator::run() {
+	
+	printf("\nTimeline of Events:");
+	
+	while (!events.empty()) {
+		Event event = events.top();
+		events.pop();
+
+        //updateTimes(event);
+
+        switch(event.getType()){
+            case EventTypes::THREAD_ARRIVED: {
+            	std::cout << "got to THREAD_ARRIVED" << std::endl;
+                threadArrived(event);
+                break;
+            }
+
+            case EventTypes::DISPATCHER_INVOKED: {
+            	std::cout << "got to DISPATCHER_INVOKED" << std::endl;
+                //dispatcher_invoked_update(event);
+                break;
+            }
+
+            case EventTypes::THREAD_DISPATCH_COMPLETED: {
+            	std::cout << "got to THREAD_DISPATCH_COMPLETED" << std::endl;
+            	break;
+            }
+
+            case EventTypes::PROCESS_DISPATCH_COMPLETED: {
+            	std::cout << "got to PROCESS_DISPATCH_COMPLETED" << std::endl;
+                //dispatch_complete_update(event);
+                break;
+            }
+
+            case EventTypes::THREAD_PREEMPTED: {
+            	std::cout << "got to THREAD_PREEMPTED" << std::endl;
+                //thread_preempted_update(event);
+                break;
+            }
+
+            case EventTypes::CPU_BURST_COMPLETED: {
+            	std::cout << "got to CPU_BURST_COMPLETED" << std::endl;
+                //cpu_burst_complete_update(event);
+                break;
+            }
+
+            case EventTypes::IO_BURST_COMPLETED: {
+            	std::cout << "got to IO_BURST_COMPLETED" << std::endl;
+                //io_burst_complete_update(event);
+                break;
+            }
+
+            case EventTypes::THREAD_COMPLETED: {
+            	std::cout << "got to THREAD_COMPLETED" << std::endl;
+                //thread_complete_update(event);
+                break;
+            }
+        }
+	}
+}
+
+/**
+ threadArrived:
+
+ */
+void Simulator::threadArrived(Event e) {
+
+	
+	Event e(EventTypes::DISPATCHER_INVOKED, 
+		threads[j].getArrivalTime(), 
+		processes[i].getProcessID(), 
+		threads[j].getThreadID(), 
+		processes[i].getPriorityType(), 
+		"Transitioned from NEW to READY");
+
+}
+
+/*
+void Simulator::updateTimes(Event &e) {
+    if(event -> get_time() > end_time){
+        end_time = event->get_time();
+    }
+
+    if(event ->get_time() < start_time){
+        start_time = event -> get_time();
+    }
+}
+*/
+
+/**
+ displayEventInfo:
+ prints out the information regarding each event
+ 
+void displayEventInfo(std::queue<Event> e) {
+
+	printf("\nTimeline of Events:");
+
+	// display each event in the queue
+	while(!e.empty()) {
+		Event event = e.front();
+		event.toString();
+		e.pop();
+		printf("\n");
+	}
+}
+*/

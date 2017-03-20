@@ -8,16 +8,20 @@
 #include "Event.h"
 
 /**
- Algorithm:
+ Simulator:
  a class containing several variations of CPU scheduling algorithms
  */
-class Algorithm {
+class Simulator {
 
 private:
 
 	int threadOverhead;
 	int processOverhead;
-	Thread running;
+	int startTime = 0;
+	int endTime = 0;
+	std::vector<Process> processes;
+	std::priority_queue<Event> events;
+	Thread currentThread;
 
 public:
 	
@@ -26,19 +30,23 @@ public:
 	 a constructor that allows the main proggram to make use of the following
 	 scheduling algorithms
 	 */
-	Algorithm(int t, int p);
+	Simulator(std::vector<Process> p, int to, int po);
+
 
 	/**
 	 getter and setter for the running thread
 	 */
-	Thread getRunningThread() { return running; }
-	void setRunningThread(Thread t) { running = t; }
+	Thread getCurrentThread() { return currentThread; }
+	void setCurrentThread(Thread t) { currentThread = t; }
+
 
 	/**
  	 firstComeFirstServe:
 	 a simple scheduling algorithm
 	 */
-	void firstComeFirstServe(std::queue<Thread> &t, std::queue<Event> &e, int time);
+	void run();
+
+	void threadArrived(Event e);
 
 
 };
