@@ -1,6 +1,6 @@
 /*************************************************************************
 * Program: CpuScheduler
-* Description: 
+* Description:
 * Author: Marcus Turner
 * Date: March 5, 2017
 *************************************************************************/
@@ -26,7 +26,7 @@
  * checks for user command lind flags every loop of the main program
  */
 void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algorithm, int* help) {
-	
+
 	// make a struct that defines user options
 	static struct option long_options[] = {
 		{"per_thread", 	no_argument, 		NULL, 	't'},
@@ -38,55 +38,55 @@ void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algor
 
 	//
 	while(true) {
-		
+
 		// stores the option index
 		int option_index = 0;
-		
+
 		// get the flag character
 		int c = getopt_long(argc, argv, "t:v:a:h", long_options, &option_index);
-		
-		// if returned -1, invalid character entered, break the loop		
+
+		// if returned -1, invalid character entered, break the loop
 		if(c == -1) break;
 
 		// otherwise, switch between different cases of flags
 		switch(c) {
-			
+
 			// for 'per_thread':
 			case 't':
-				
+
 				// set to true
 				*per_thread = true;
-				
+
 				break;
-			
+
 			// for 'verbose':
 			case 'v':
-				
+
 				// set to true
 				*verbose = true;
-				
+
 				break;
 
 			// for 'algorithm':
 			case 'a':
-				
+
 				// choose which algorithm to use
 				if (strcmp(optarg, "FCFS") == 0) *algorithm = 0;
 				else if(strcmp(optarg, "RR") == 0) *algorithm = 1;
 				else if(strcmp(optarg, "PRIORITY") == 0) *algorithm = 2;
 				else if(strcmp(optarg, "CUSTOM") == 0) *algorithm = 3;
-				
+
 				// if invalid argument, diplay error and exit
 				else {
 					printf("Invalid option detected.\nDefaulting to FCFS.\n");
 					*algorithm = 0;
 				}
-				
+
 				break;
 
 			// for 'help':
 			case 'h':
-		
+
 				// display options
 				printf("\nCommand line Flags:\n");
 				printf("./simulator [flags] simulation_file.txt\n");
@@ -94,7 +94,7 @@ void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algor
 				printf("\t-v, --verbose:\n\tOutput information about every state-changing event and scheduling decision.\n\n");
 				printf("\t-a, --algorithm:\n\tThe scheduling algorithm to use. Can be FCFS, RR, PRIORITY, or CUSTOM.\n\n");
 				printf("\t-h, --help:\n\tDisplay a help message about the command line flags and exit.\n\n");
-				
+
 				// exit (no error)
 				exit(0);
 
@@ -102,7 +102,7 @@ void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algor
 			default:
 				exit(-1);
 		}
-		
+
 		// print any remaining command line arguments (not options)
 		if (optind < argc) {
 			std::cout << "non-option ARGV-elements:" << std::endl;
@@ -181,7 +181,7 @@ fileData readFile(std::string inputFile) {
 
 	// open a new file stream object
 	std::ifstream inFile(inputFile);
-	
+
 	// declare struct variables
 	std::vector<Process> processes;
 	unsigned int numProcesses, threadOverhead, processOverhead;
@@ -198,11 +198,11 @@ fileData readFile(std::string inputFile) {
 		inFile >> numProcesses
 			   >> threadOverhead
 			   >> processOverhead;
-		
+
 		// get the processes
 		for (unsigned int i = 0; i < numProcesses; i++) {
 			Process tempProcess = getProcess(inFile);
-			processes.push_back(tempProcess); 
+			processes.push_back(tempProcess);
 		}
 
 		// close the file stream
@@ -315,7 +315,7 @@ int main(int argc, char** argv) {
 	processOverhead = fileData.processOverhead;
 
 	// create an object for scheduling
-	Simulator sim(processes, threadOverhead, processOverhead);
+	Simulator sim(processes, threadOverhead, processOverhead, a, v);
 
 	// call a scheduling scheme
 	sim.run();
