@@ -1,41 +1,39 @@
 #include <iostream>
 
 #include "Simulator.h"
-#include "Event.h"
-#include "Thread.h"
 
 /**
  Simulator:
  a constructor that allows the main proggram to make use of the following
  scheduling algorithms
  */
-Simulator::Simulator(std::vector<Process> p, int to, int po, int al, bool v) {
+Simulator::Simulator(std::vector<Process*> p, int to, int po, bool v) {
 
 	// initialize class variables
 	processes = p;
 	threadOverhead = to;
 	processOverhead = po;
-	algorithm = al;
 	verbose = v;
+	currentThread = new Thread();
 
 	// initialize the event queue
-	for(int i = 0; i < processes.size(); i++) {
+	for(int i = 0; i < (int)processes.size(); i++) {
 
 		// check for new threads from that process
-		std::vector<Thread> threads = processes[i].getProcessThreads();
-		for(int j = 0; j < threads.size(); j++) {
+		std::vector<Thread*> threads = processes[i]->getProcessThreads();
+		for(int j = 0; j < (int)threads.size(); j++) {
 
 			// change the thread state
-			threads[i].setThreadState("READY");
+			threads[i]->setThreadState("READY");
 
 			// add an event to the event queue
-			Event e(EventTypes::THREAD_ARRIVED,
-					threads[j].getArrivalTime(),
-					processes[i].getProcessID(),
-					threads[j].getThreadID(),
-					processes[i].getPriorityType(),
-					"Transitioned from NEW to READY");
-			events.push(e);
+			Event* newEvent = new Event(EventTypes::THREAD_ARRIVED,
+						   				threads[j]->getArrivalTime(),
+						   				processes[i]->getProcessID(),
+						   				threads[j]->getThreadID(),
+						   				processes[i]->getPriorityType(),
+						   				"Transitioned from NEW to READY");
+			events.push(newEvent);
 		}
 	}
 }
@@ -50,23 +48,21 @@ void Simulator::run() {
 	printf("\nTimeline of Events:");
 
 	while (!events.empty()) {
-		Event event = events.top();
+		Event* event = events.top();
 		events.pop();
 
 		// display the current event
-		if(verbose) event.toString();
+		if(verbose) ; event->toString();
 
-        //updateTimes(event);
-
-        switch(event.getType()){
+		// update the event queue based on the current event
+        switch(event->getType()){
             case EventTypes::THREAD_ARRIVED: {
                 threadArrived(event);
                 break;
             }
 
             case EventTypes::DISPATCHER_INVOKED: {
-          		std::cout << "got to DISPATCHER_INVOKED" << std::endl;
-
+          		dispatchInvoked(event);
                 break;
             }
 
@@ -76,8 +72,7 @@ void Simulator::run() {
             }
 
             case EventTypes::PROCESS_DISPATCH_COMPLETED: {
-            	std::cout << "got to PROCESS_DISPATCH_COMPLETED" << std::endl;
-
+            	processDispatchComplete(event);
                 break;
             }
 
@@ -106,65 +101,94 @@ void Simulator::run() {
             }
         }
 	}
+
+	//displayReadyQueue();
 }
 
 /**
  threadArrived:
- builds events around the arrival of a new thread
+ 
  */
-void Simulator::threadArrived(Event e) {
+void Simulator::threadArrived(Event* e) {
 
-	// if no running thread:
-	//if(currentThread == NULL) {
+	// if no running thread and an inactive dispatcher:
+	if(currentThread->getProcessID() == -1 && currentThread->getThreadID() == -1 && !dispatcherActive) {
 
-		// get ready queue size
+		// get ready queue size for message #
 
 		// invoke process dispatch
-		Event newEvent(EventTypes::DISPATCHER_INVOKED,
-							e.getTime(),
-							e.getProcessID(),
-							e.getThreadID(),
-							e.getPriority(),
-							"Selected from # threads; will run to completion of burst");
+		Event* newEvent = new Event(EventTypes::DISPATCHER_INVOKED,
+									e->getTime(),
+									e->getProcessID(),
+									e->getThreadID(),
+									e->getPriority(),
+									"Selected from # threads; will run to completion of burst");
 		events.push(newEvent);
-	//}
+	}
 
-/*
-	Event e(EventTypes::DISPATCHER_INVOKED,
-		threads[j].getArrivalTime(),
-		processes[i].getProcessID(),
-		threads[j].getThreadID(),
-		processes[i].getPriorityType(),
-		"Transitioned from NEW to READY");
-*/
+	/*
+	// place the thread in the in the ready queue
+	int tid = processes[e.getProcessID()].getProcessThreads()[e.getThreadID()].getThreadID();
+	int pid = processes[e.getProcessID()].getProcessThreads()[e.getThreadID()].getProcessID();
+	int art = processes[e.getProcessID()].getProcessThreads()[e.getThreadID()].getArrivalTime();
+	std::string state = processes[e.getProcessID()].getProcessThreads()[e.getThreadID()].getThreadState();
+	std::vector<Burst> bursts = processes[e.getProcessID()].getProcessThreads()[e.getThreadID()].getBursts();
+	
+	Thread* t = new Thread(tid, pid, art, state, bursts);
+	readyQueue.push(t);
+
+	printf("\n\nDispatcher is busy, so P%dT%d is going to be pushed to the ready queue\n\n", pid, tid);
+	displayReadyQueue();
+	*/
+
 }
-
-/*
-void Simulator::updateTimes(Event &e) {
-    if(event -> get_time() > end_time){
-        end_time = event->get_time();
-    }
-
-    if(event ->get_time() < start_time){
-        start_time = event -> get_time();
-    }
-}
-*/
 
 /**
- displayEventInfo:
- prints out the information regarding each event
+ dispatchInvoked:
+ 
+ */
+void Simulator::dispatchInvoked(Event* e) {
 
-void displayEventInfo(std::queue<Event> e) {
+	// set the dispatcher flag to true
+	dispatcherActive = true;
 
-	printf("\nTimeline of Events:");
+	// indicate when the process dispatch will be complete
+	Event* newEvent = new Event(EventTypes::PROCESS_DISPATCH_COMPLETED,
+								e->getTime() + processOverhead,
+								e->getProcessID(),
+								e->getThreadID(),
+								e->getPriority(),
+								"Transitioned from READY to RUNNING");
+	events.push(newEvent);
 
-	// display each event in the queue
-	while(!e.empty()) {
-		Event event = e.front();
-		event.toString();
-		e.pop();
-		printf("\n");
+	// change the state of the thread
+
+}
+
+/**
+ processDispatchComplete:
+ 
+ */
+void Simulator::processDispatchComplete(Event* e) {
+
+	// set the current thread
+	//currentThread = 
+
+}
+
+
+
+
+
+
+
+
+void Simulator::displayReadyQueue() {
+
+	printf("\nReady Queue:\n");
+	while(!readyQueue.empty()) {
+		Thread* t = readyQueue.front();
+		printf("P%dT%d\n", t->getProcessID(), t->getThreadID());
+		readyQueue.pop();
 	}
 }
-*/

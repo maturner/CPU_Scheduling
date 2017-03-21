@@ -16,11 +16,11 @@ private:
 	int threadID;
 	int processID;
 	int arrivalTime;
-	int startTime;
+	int startTime = -1;
 	int numIOBursts;
 	int numCPUBursts;
 	std::string threadState;
-	std::vector<Burst> bursts;
+	std::vector<Burst*> bursts;
 
 
 // public class variables and functions
@@ -30,7 +30,7 @@ public:
 	 Thread:
 	 constructor function to build a new thread
 	 */
-	Thread(int i, int p, int t, std::string s, std::vector<Burst> b);
+	Thread(int i, int p, int t, std::string s, std::vector<Burst*> b);
 
 	/**
 	 Thread:
@@ -49,8 +49,9 @@ public:
 	int getNumIOBursts() { return numIOBursts; }
 	int getNumCPUBursts() { return numCPUBursts; }
 	std::string getThreadState() { return threadState; }
-	std::vector<Burst> getCPUBursts();
-	std::vector<Burst> getIOBursts();
+	std::vector<Burst*> getBursts() { return bursts; }
+	std::vector<Burst*> getCPUBursts();
+	std::vector<Burst*> getIOBursts();
 
 	/*
 	 setter functions:
@@ -63,6 +64,6 @@ public:
 	 addBurst:
 	 constructor function to build a new thread
 	 */
-	void addBurst(Burst b);
+	void addBurst(Burst* b);
 
 };

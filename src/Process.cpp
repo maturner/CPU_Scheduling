@@ -5,10 +5,10 @@
  Process:
  constructor function to build a new process
  */
-Process::Process(int i, int p, std::vector<Thread> th) {
-	processID = i;
-	priority = p;
-	threads = th;
+Process::Process(int i, int p, std::vector<Thread*> th) {
+	this->processID = i;
+	this->priority = p;
+	this->threads = th;
 }
 
 /**
@@ -47,9 +47,9 @@ void Process::toString() {
 	for(unsigned int i = 0; i < threads.size(); i++) {
 		printf("\tThread %d:\tARR: %d\tCPU: %d\tI/O: %d\tTRT: %d\tEND: %d\n",
 			i, 
-			threads[i].getArrivalTime(), 
-			(int)threads[i].getNumCPUBursts(), 
-			(int)threads[i].getNumIOBursts(), 
+			threads[i]->getArrivalTime(), 
+			threads[i]->getNumCPUBursts(), 
+			threads[i]->getNumIOBursts(), 
 			4, 
 			5);
 	}

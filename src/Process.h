@@ -13,7 +13,7 @@ class Process {
 private:
 	int processID;
 	int priority;
-	std::vector<Thread> threads;
+	std::vector<Thread*> threads;
 
 
 // public class variables and functions
@@ -23,7 +23,7 @@ public:
 	 Process:
 	 constructor function to build a new process
 	 */
-	Process(int i, int p, std::vector<Thread> th);
+	Process(int i, int p, std::vector<Thread*> th);
 
 	Process();
 
@@ -33,7 +33,7 @@ public:
 	 */
 	int getProcessID() { return processID; }
 	int getPriority() { return priority; }
-	std::vector<Thread> getProcessThreads() { return threads; }
+	std::vector<Thread*> getProcessThreads() { return threads; }
 
 	/**
 	 priorityType:

@@ -117,7 +117,7 @@ void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algor
  getThread:
  uses the passed filestream object to read in the thread info
  */
-Thread getThread(std::ifstream &inFile, int tid, int pid) {
+Thread* getThread(std::ifstream &inFile, int tid, int pid) {
 
 	// get the process header information
 	unsigned int arrivalTime, numBursts, cBurst, iBurst;
@@ -126,21 +126,21 @@ Thread getThread(std::ifstream &inFile, int tid, int pid) {
 		   >> numBursts;
 
 	// get a vector of CPU and IO Bursts
-	std::vector<Burst> bursts;
+	std::vector<Burst*> bursts;
 
 	for(unsigned int i = 0; i < numBursts - 1; i++) {
 		inFile >> cBurst
 			   >> iBurst;
 
-		Burst cpuBurst(cBurst, "CPU");	bursts.push_back(cpuBurst);
-		Burst ioBurst(iBurst, "IO");	bursts.push_back(ioBurst);
+		Burst* cpuBurst = new Burst(cBurst, "CPU");	bursts.push_back(cpuBurst);
+		Burst* ioBurst = new Burst(iBurst, "IO");	bursts.push_back(ioBurst);
 	}
 
 	// get the last cpu burst
 	inFile >> cBurst;
-	Burst cpuBurst(cBurst, "CPU");	bursts.push_back(cpuBurst);
+	Burst* cpuBurst = new Burst(cBurst, "CPU");	bursts.push_back(cpuBurst);
 
-	Thread t(tid, pid, arrivalTime, "NEW", bursts);
+	Thread* t = new Thread(tid, pid, arrivalTime, "NEW", bursts);
 	return t;
 }
 
@@ -148,22 +148,22 @@ Thread getThread(std::ifstream &inFile, int tid, int pid) {
  getProcess:
  uses the passed filestream object to read in the process info
  */
-Process getProcess(std::ifstream &inFile) {
+Process* getProcess(std::ifstream &inFile) {
 
-	std::vector<Thread> threads;
+	std::vector<Thread*> threads;
 
 	// get the process header information
-	unsigned int processID, processType, numThreads;
+	int processID, processType, numThreads;
 	inFile >> processID
 		   >> processType
 		   >> numThreads;
 
-	for(unsigned int i = 0; i < numThreads; i++) {
-		Thread tempThread = getThread(inFile, i + 1, processID);
+	for(int i = 0; i < numThreads; i++) {
+		Thread* tempThread = getThread(inFile, i + 1, processID);
 		threads.push_back(tempThread);
 	}
 
-	Process p(processID, processType, threads);
+	Process* p = new Process(processID, processType, threads);
 	return p;
 }
 
@@ -172,9 +172,9 @@ Process getProcess(std::ifstream &inFile) {
  returns a struct containing all the information read in from the text file
  */
 struct fileData {
-	std::vector<Process> processes;
-	unsigned int threadOverhead;
-	unsigned int processOverhead;
+	std::vector<Process*> processes;
+	int threadOverhead;
+	int processOverhead;
 };
 
 fileData readFile(std::string inputFile) {
@@ -183,8 +183,8 @@ fileData readFile(std::string inputFile) {
 	std::ifstream inFile(inputFile);
 
 	// declare struct variables
-	std::vector<Process> processes;
-	unsigned int numProcesses, threadOverhead, processOverhead;
+	std::vector<Process*> processes;
+	int numProcesses, threadOverhead, processOverhead;
 
 	// check for error when opening the file
 	if (inFile.fail()) {
@@ -200,8 +200,8 @@ fileData readFile(std::string inputFile) {
 			   >> processOverhead;
 
 		// get the processes
-		for (unsigned int i = 0; i < numProcesses; i++) {
-			Process tempProcess = getProcess(inFile);
+		for (int i = 0; i < numProcesses; i++) {
+			Process* tempProcess = getProcess(inFile);
 			processes.push_back(tempProcess);
 		}
 
@@ -216,11 +216,11 @@ fileData readFile(std::string inputFile) {
  displayProcessInfo:
  prints out the information regarding each process
  */
-void displayProcessInfo(std::vector<Process> p) {
+void displayProcessInfo(std::vector<Process*> p) {
 
 	printf("\nProcess Info:\n");
 	for(unsigned int i = 0; i < p.size(); i++) {
-		p[i].toString();
+		p[i]->toString();
 		printf("\n");
 	}
 }
@@ -229,7 +229,7 @@ void displayProcessInfo(std::vector<Process> p) {
  displayInfo:
  prints out the information regarding each process
  */
-void displayInfo(std::vector<Process> p) {
+void displayInfo(std::vector<Process*> p) {
 
 	int sys_threads = 0;
 	int int_threads = 0;
@@ -238,10 +238,10 @@ void displayInfo(std::vector<Process> p) {
 
 
 	for(unsigned int i = 0; i < p.size(); i++) {
-		if(p[i].getPriority() == 0) sys_threads = sys_threads + p[i].getProcessThreads().size();
-		if(p[i].getPriority() == 1) int_threads = int_threads + p[i].getProcessThreads().size();
-		if(p[i].getPriority() == 2) norm_threads = norm_threads + p[i].getProcessThreads().size();
-		if(p[i].getPriority() == 3) bat_threads = bat_threads + p[i].getProcessThreads().size();
+		if(p[i]->getPriority() == 0) sys_threads = sys_threads + p[i]->getProcessThreads().size();
+		if(p[i]->getPriority() == 1) int_threads = int_threads + p[i]->getProcessThreads().size();
+		if(p[i]->getPriority() == 2) norm_threads = norm_threads + p[i]->getProcessThreads().size();
+		if(p[i]->getPriority() == 3) bat_threads = bat_threads + p[i]->getProcessThreads().size();
 	}
 
 	// display system thread information:
@@ -276,8 +276,8 @@ void displayInfo(std::vector<Process> p) {
 	printf("\nTotal Idle Time:\t\t%d\n", 0);
 
 	// display CPU statistics
-	printf("\nCPU Utilization:\t\t%2.2f%%", 0);
-	printf("\nCPU Efficiency:\t\t\t%2.2f%%\n", 0);
+	printf("\nCPU Utilization:\t\t%2.2f%%", 0.0);
+	printf("\nCPU Efficiency:\t\t\t%2.2f%%\n", 0.0);
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -297,9 +297,8 @@ int main(int argc, char** argv) {
 	get_flag(argc, argv, &t, &v, &a, &h);
 
 	// scheduling variables
-	std::vector<Process> processes;		// a vector that holds the data from the input file
-	std::queue<Event> events;			// the event queue that stores all changes to the system
-	std::queue<Thread> readyQueue;		// the ready queue that stores the processes that are ready
+	std::vector<Process*> processes;	// a vector that holds the hierarchy of data from the input file
+	std::queue<Event*> events;			// the event queue that stores all changes to the system
 
 	// given overhead times for context switching
 	unsigned int threadOverhead, processOverhead;
@@ -315,7 +314,7 @@ int main(int argc, char** argv) {
 	processOverhead = fileData.processOverhead;
 
 	// create an object for scheduling
-	Simulator sim(processes, threadOverhead, processOverhead, a, v);
+	Simulator sim(processes, threadOverhead, processOverhead, v);
 
 	// call a scheduling scheme
 	sim.run();
