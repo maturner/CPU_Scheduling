@@ -1,13 +1,13 @@
 #include <iostream>
 
-#include "Simulator.h"
+#include "fcfsSimulator.h"
 
 /**
- Simulator:
+ fcfsSimulator:
  a constructor that allows the main proggram to make use of the following
  scheduling algorithms
  */
-Simulator::Simulator(std::vector<Process*> p, int to, int po, bool v) {
+fcfsSimulator::fcfsSimulator(std::vector<Process*> p, int to, int po, bool v) {
 
 	// initialize class variables
 	processes = p;
@@ -43,7 +43,7 @@ Simulator::Simulator(std::vector<Process*> p, int to, int po, bool v) {
  firstComeFirstServe:
  a function to schedule the next process to run
  */
-void Simulator::run() {
+void fcfsSimulator::run() {
 
 	printf("\nTimeline of Events:");
 
@@ -109,7 +109,7 @@ void Simulator::run() {
  threadArrived:
 
  */
-void Simulator::threadArrived(Event* e) {
+void fcfsSimulator::threadArrived(Event* e) {
 
 	// if no running thread and an inactive dispatcher:
 	if(currentThread->getProcessID() == -1 && currentThread->getThreadID() == -1 && !dispatcherActive) {
@@ -137,7 +137,7 @@ void Simulator::threadArrived(Event* e) {
  dispatchInvoked:
 
  */
-void Simulator::dispatchInvoked(Event* e) {
+void fcfsSimulator::dispatchInvoked(Event* e) {
 
 	// set the dispatcher flag to true
 	dispatcherActive = true;
@@ -159,17 +159,15 @@ void Simulator::dispatchInvoked(Event* e) {
  processDispatchComplete:
 
  */
-void Simulator::processDispatchComplete(Event* e) {
+void fcfsSimulator::processDispatchComplete(Event* e) {
 
 	// indicate that the dispatcher is ready
 	dispatcherActive = false;
 
 	// set the current thread and calculate run time
 	currentThread = readyQueue.front();
-	//printf("\n\nThe current thread is P%dT%d\n\n", currentThread->getProcessID(), currentThread->getThreadID());
-	//readyQueue.pop();
+	readyQueue.pop();
 	int runTime = currentThread->getBursts().front()->getBurstLength();
-	//printf("\n\nrun time of the first burst is %d\n\n", runTime);
 
 	// indicate when the process dispatch will be complete
 	Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
@@ -179,5 +177,15 @@ void Simulator::processDispatchComplete(Event* e) {
 								e->getPriority(),
 								"Transitioned from RUNNING to BLOCKED");
 	events.push(newEvent);
+
+}
+
+/**
+ cpuBurstCompleted:
+
+ */
+void fcfsSimulator::cpuBurstCompleted(Event* e) {
+
+	
 
 }

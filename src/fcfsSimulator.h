@@ -18,7 +18,7 @@
  a constructor that allows the main proggram to make use of the following
  scheduling algorithms
  */
-class Simulator {
+class fcfsSimulator {
 
 private:
 
@@ -43,7 +43,7 @@ public:
 	 a constructor that allows the main proggram to make use of the following
 	 scheduling algorithms
 	 */
-	Simulator(std::vector<Process*> p, int to, int po, bool v);
+	fcfsSimulator(std::vector<Process*> p, int to, int po, bool v);
 
 
 	/**
@@ -62,5 +62,6 @@ public:
 	void threadArrived(Event* e);
 	void dispatchInvoked(Event* e);
 	void processDispatchComplete(Event* e);
+	void cpuBurstCompleted(Event* e);
 
 };

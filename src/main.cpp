@@ -14,11 +14,7 @@
 #include <cstring>
 #include <queue>
 
-#include "Process.h"
-#include "Burst.h"
-#include "Event.h"
-#include "Thread.h"
-#include "Simulator.h"
+#include "fcfsSimulator.h"
 
 
 /**
@@ -314,10 +310,10 @@ int main(int argc, char** argv) {
 	processOverhead = fileData.processOverhead;
 
 	// create an object for scheduling
-	Simulator sim(processes, threadOverhead, processOverhead, v);
+	fcfsSimulator fcfs(processes, threadOverhead, processOverhead, v);
 
 	// call a scheduling scheme
-	sim.run();
+	fcfs.run();
 
 	// display basic system information
 	displayInfo(processes);
