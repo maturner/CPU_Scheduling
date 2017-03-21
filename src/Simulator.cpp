@@ -54,7 +54,7 @@ void Simulator::run() {
 		// display the current event
 		if(verbose) ; event->toString();
 
-		
+
 		// update the event queue based on the current event
         switch(event->getType()){
             case EventTypes::THREAD_ARRIVED: {
@@ -101,14 +101,13 @@ void Simulator::run() {
                 break;
             }
         }
-        
+			//printf("\nReady Queue Size: %d", readyQueue.size());
 	}
-	//displayReadyQueue();
 }
 
 /**
  threadArrived:
- 
+
  */
 void Simulator::threadArrived(Event* e) {
 
@@ -127,25 +126,15 @@ void Simulator::threadArrived(Event* e) {
 		events.push(newEvent);
 	}
 
-	
-	// place the thread in the in the ready queue
-	//int tid = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getThreadID();
-	//int pid = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getProcessID();
-	//int art = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getArrivalTime();
-	//std::string state = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getThreadState();
-	//std::vector<Burst*> bursts = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getBursts();
-	
-	//Thread* t = new Thread(tid, pid, art, state, bursts);
-	//readyQueue.push(t);
-
-	//printf("\n\nDispatcher is busy, so P%dT%d is going to be pushed to the ready queue\n\n", pid, tid);
-	
+	// push the thread onto the ready queue
+	Thread* t = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID() - 1];
+	readyQueue.push(t);
 
 }
 
 /**
  dispatchInvoked:
- 
+
  */
 void Simulator::dispatchInvoked(Event* e) {
 
@@ -167,28 +156,27 @@ void Simulator::dispatchInvoked(Event* e) {
 
 /**
  processDispatchComplete:
- 
+
  */
 void Simulator::processDispatchComplete(Event* e) {
 
-	// set the current thread
-	//currentThread = 
+	// indicate that the dispatcher is ready
+	dispatcherActive = false;
 
-}
+	// set the current thread and calculate run time
+	currentThread = readyQueue.front();
+	//printf("\n\nThe current thread is P%dT%d\n\n", currentThread->getProcessID(), currentThread->getThreadID());
+	//readyQueue.pop();
+	int runTime = currentThread->getBursts().front()->getBurstLength();
+	//printf("\n\nrun time of the first burst is %d\n\n", runTime);
 
+	// indicate when the process dispatch will be complete
+	Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
+								e->getTime() + runTime,
+								e->getProcessID(),
+								e->getThreadID(),
+								e->getPriority(),
+								"Transitioned from RUNNING to BLOCKED");
+	events.push(newEvent);
 
-
-
-
-
-
-
-void Simulator::displayReadyQueue() {
-
-	printf("\nReady Queue:\n");
-	while(!readyQueue.empty()) {
-		Thread* t = readyQueue.front();
-		printf("P%dT%d\n", t->getProcessID(), t->getThreadID());
-		readyQueue.pop();
-	}
 }

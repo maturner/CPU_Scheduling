@@ -125,20 +125,20 @@ Thread* getThread(std::ifstream &inFile, int tid, int pid) {
 	inFile >> arrivalTime
 		   >> numBursts;
 
-	// get a vector of CPU and IO Bursts
-	std::vector<Burst*> bursts;
+	// get a queue of CPU and IO Bursts
+	std::queue<Burst*> bursts;
 
 	for(unsigned int i = 0; i < numBursts - 1; i++) {
 		inFile >> cBurst
 			   >> iBurst;
 
-		Burst* cpuBurst = new Burst(cBurst, "CPU");	bursts.push_back(cpuBurst);
-		Burst* ioBurst = new Burst(iBurst, "IO");	bursts.push_back(ioBurst);
+		Burst* cpuBurst = new Burst(cBurst, "CPU");	bursts.push(cpuBurst);
+		Burst* ioBurst = new Burst(iBurst, "IO");	bursts.push(ioBurst);
 	}
 
 	// get the last cpu burst
 	inFile >> cBurst;
-	Burst* cpuBurst = new Burst(cBurst, "CPU");	bursts.push_back(cpuBurst);
+	Burst* cpuBurst = new Burst(cBurst, "CPU");	bursts.push(cpuBurst);
 
 	Thread* t = new Thread(tid, pid, arrivalTime, "NEW", bursts);
 	return t;

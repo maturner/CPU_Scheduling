@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <queue>
 #include <string>
 
 #include "Burst.h"
@@ -20,7 +21,7 @@ private:
 	int numIOBursts;
 	int numCPUBursts;
 	std::string threadState;
-	std::vector<Burst*> bursts;
+	std::queue<Burst*> bursts;
 
 
 // public class variables and functions
@@ -28,15 +29,21 @@ public:
 
 	/**
 	 Thread:
-	 constructor function to build a new thread
-	 */
-	Thread(int i, int p, int t, std::string s, std::vector<Burst*> b);
-
-	/**
-	 Thread:
 	 default constructor
 	 */
 	Thread();
+
+	/**
+	 Thread:
+	 constructor function to build a new thread
+	 */
+	Thread(int i, int p, int t, std::string s, std::queue<Burst*> b);
+
+	/**
+	 Thread:
+	 copy constructor
+	 */
+	Thread(const Thread &t);
 
 	/*
 	 getter functions:
@@ -49,9 +56,9 @@ public:
 	int getNumIOBursts() { return numIOBursts; }
 	int getNumCPUBursts() { return numCPUBursts; }
 	std::string getThreadState() { return threadState; }
-	std::vector<Burst*> getBursts() { return bursts; }
-	std::vector<Burst*> getCPUBursts();
-	std::vector<Burst*> getIOBursts();
+	std::queue<Burst*> getBursts() { return bursts; }
+	std::queue<Burst*> getCPUBursts();
+	std::queue<Burst*> getIOBursts();
 
 	/*
 	 setter functions:
