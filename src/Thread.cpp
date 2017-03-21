@@ -3,29 +3,6 @@
 
 /**
  Thread:
- constructor function to build a new thread
- */
-Thread::Thread(int i, int p, int t, std::string s, std::vector<Burst*> b) {
-	this->threadID = i;
-	this->processID = p;
-	this->arrivalTime = t;
-	this->threadState = s;
-	this->bursts = b;
-	this->numIOBursts = 0;
-	this->numCPUBursts = 0;
-
-	// get the specific number of each burst
-	for(unsigned int i = 0; i < bursts.size(); i++) {
-		if (strcmp(bursts[i]->getBurstType(), "CPU") == 0)
-			numCPUBursts++;
-		if (strcmp(bursts[i]->getBurstType(), "IO") == 0)
-			numIOBursts++;
-	}
-
-}
-
-/**
- Thread:
  default constructor
  */
 Thread::Thread() {
@@ -36,10 +13,43 @@ Thread::Thread() {
 	bursts;
 }
 
+/**
+ Thread:
+ constructor function to build a new thread
+ */
+Thread::Thread(int i, int p, int t, std::string s, std::queue<Burst*> b) {
+	threadID = i;
+	processID = p;
+	arrivalTime = t;
+	threadState = s;
+	bursts = b;
+
+	// get the specific number of each burst
+	numIOBursts = bursts.size() / 2;
+	numCPUBursts = (bursts.size() / 2) + 1;
+
+}
+
+/**
+ Thread:
+ copy constructor
+ */
+Thread::Thread(const Thread &t) {
+	threadID = t.threadID;
+	processID = t.processID;
+	arrivalTime = t.arrivalTime;
+	startTime = -1;
+	numIOBursts = t.numIOBursts;
+	numCPUBursts = t.numCPUBursts;
+	threadState = t.threadState;
+	bursts = t.bursts;
+}
+
 /*
  getter functions:
  return variable values for display functions
  */
+ /*
 std::vector<Burst*> Thread::getCPUBursts() {
 	std::vector<Burst*> cBursts;
 	char key[] = "CPU";
@@ -59,11 +69,12 @@ std::vector<Burst*> Thread::getIOBursts() {
 	}
 	return iBursts;
 }
+*/
 
 /**
  addBurst:
  constructor function to build a new thread
  */
 void Thread::addBurst(Burst* b) {
-	bursts.push_back(b);
+	bursts.push(b);
 }

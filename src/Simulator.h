@@ -63,6 +63,4 @@ public:
 	void dispatchInvoked(Event* e);
 	void processDispatchComplete(Event* e);
 
-
-	void displayReadyQueue();
 };
