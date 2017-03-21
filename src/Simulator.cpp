@@ -54,6 +54,7 @@ void Simulator::run() {
 		// display the current event
 		if(verbose) ; event->toString();
 
+		
 		// update the event queue based on the current event
         switch(event->getType()){
             case EventTypes::THREAD_ARRIVED: {
@@ -100,8 +101,8 @@ void Simulator::run() {
                 break;
             }
         }
+        
 	}
-
 	//displayReadyQueue();
 }
 
@@ -126,20 +127,19 @@ void Simulator::threadArrived(Event* e) {
 		events.push(newEvent);
 	}
 
-	/*
-	// place the thread in the in the ready queue
-	int tid = processes[e.getProcessID()].getProcessThreads()[e.getThreadID()].getThreadID();
-	int pid = processes[e.getProcessID()].getProcessThreads()[e.getThreadID()].getProcessID();
-	int art = processes[e.getProcessID()].getProcessThreads()[e.getThreadID()].getArrivalTime();
-	std::string state = processes[e.getProcessID()].getProcessThreads()[e.getThreadID()].getThreadState();
-	std::vector<Burst> bursts = processes[e.getProcessID()].getProcessThreads()[e.getThreadID()].getBursts();
 	
-	Thread* t = new Thread(tid, pid, art, state, bursts);
-	readyQueue.push(t);
+	// place the thread in the in the ready queue
+	//int tid = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getThreadID();
+	//int pid = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getProcessID();
+	//int art = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getArrivalTime();
+	//std::string state = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getThreadState();
+	//std::vector<Burst*> bursts = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getBursts();
+	
+	//Thread* t = new Thread(tid, pid, art, state, bursts);
+	//readyQueue.push(t);
 
-	printf("\n\nDispatcher is busy, so P%dT%d is going to be pushed to the ready queue\n\n", pid, tid);
-	displayReadyQueue();
-	*/
+	//printf("\n\nDispatcher is busy, so P%dT%d is going to be pushed to the ready queue\n\n", pid, tid);
+	
 
 }
 

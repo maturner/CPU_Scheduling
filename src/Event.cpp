@@ -30,11 +30,3 @@ void Event::toString() {
 	printf("\n\t%s", message);
 }
 
-/**
- operator <:
- overloaded operator to allow for sorting of events by time
- */
-bool Event::operator<(Event* e1) {
-
-	return e1->getTime() < time;
-}

@@ -30,7 +30,7 @@ private:
 	bool dispatcherActive = false;
 
 	std::vector<Process*> processes;
-	std::priority_queue<Event*> events;
+	std::priority_queue<Event*, std::vector<Event*>, comparison> events;
 	std::queue<Thread*> readyQueue;
 
 	Process* currentProcess;

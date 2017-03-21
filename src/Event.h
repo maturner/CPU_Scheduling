@@ -52,7 +52,7 @@ public:
 	/**
 	 getter functions:
 	 */
-	int getTime() { return time; }
+	int getTime() const { return time; }
 	int getProcessID() { return processID; }
 	int getThreadID() { return threadID; }
 	char* getPriority() { return tPriority; }
@@ -64,12 +64,14 @@ public:
 	 prints out the required information regarding the Event
 	 */
 	void toString();
+};
 
-	/**
-	 operator <:
-	 overloaded operator to allow for sorting of events by time
-	 */
-	bool operator<(Event* e1);
-
-
+/**
+ comparison:
+ provides the priority queue the operation it needs to determine priorities
+ */
+struct comparison {
+	bool operator()(const Event* e1, const Event* e2) {
+		return e1->getTime() >= e2->getTime();
+	}
 };

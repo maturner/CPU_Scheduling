@@ -245,7 +245,7 @@ void displayInfo(std::vector<Process*> p) {
 	}
 
 	// display system thread information:
-	printf("\nSYSTEM THREADS:\n");
+	printf("\n\n\nSYSTEM THREADS:\n");
 	printf("\tTotal Count:\t\t%d\n", sys_threads);
 	printf("\tAvg Response Time:\t%d\n", 0);
 	printf("\tAvg Turnaround Time:\t%d\n", 0);
