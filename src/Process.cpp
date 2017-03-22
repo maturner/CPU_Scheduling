@@ -6,9 +6,9 @@
  constructor function to build a new process
  */
 Process::Process(int i, int p, std::vector<Thread*> th) {
-	this->processID = i;
-	this->priority = p;
-	this->threads = th;
+	processID = i;
+	priority = p;
+	threads = th;
 }
 
 /**
@@ -20,8 +20,8 @@ Process::Process() {
 }
 
 /**
- * priorityType:
- * returns a string representation of the priority type
+ priorityType:
+ returns a string representation of the priority type
  */
 char* Process::getPriorityType() {
 
@@ -37,21 +37,25 @@ char* Process::getPriorityType() {
 }
 
 /**
- * toString:
- *
+ toString:
+ prints out the process in the required format to visualize basic data
  */
 void Process::toString() {
 
 	printf("Process %d [%s]:\n", processID, getPriorityType());
 
 	for(unsigned int i = 0; i < threads.size(); i++) {
-		printf("\tThread %d:\tARR: %d\tCPU: %d\tI/O: %d\tTRT: %d\tEND: %d\n",
+
+		int a = threads[i]->getArrivalTime();
+		int e = threads[i]->getEndTime();
+
+		printf("\tThread%3d:   ARR:%3d   CPU:%3d   I/O:%3d   TRT:%4d   END:%4d\n",
 			i, 
-			threads[i]->getArrivalTime(), 
-			threads[i]->getNumCPUBursts(), 
-			threads[i]->getNumIOBursts(), 
-			4, 
-			5);
+			a, 
+			threads[i]->getServiceTime(), 
+			threads[i]->getIOTime(), 
+			(e - a), 
+			e);
 	}
 }
 

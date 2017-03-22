@@ -27,6 +27,6 @@ void Event::toString() {
 	printf("\nAt time %d", time);
 	printf("\n\t%s", Types[eventType]);
 	printf("\n\tThread %d in Process %d [%s]", threadID, processID, tPriority);
-	printf("\n\t%s", message);
+	printf("\n\t%s\n", message);
 }
 

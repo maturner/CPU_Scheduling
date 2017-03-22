@@ -117,6 +117,8 @@ Thread* getThread(std::ifstream &inFile, int tid, int pid) {
 
 	// get the process header information
 	unsigned int arrivalTime, numBursts, cBurst, iBurst;
+	int serviceTime = 0;
+	int ioTime = 0;
 
 	inFile >> arrivalTime
 		   >> numBursts;
@@ -128,15 +130,20 @@ Thread* getThread(std::ifstream &inFile, int tid, int pid) {
 		inFile >> cBurst
 			   >> iBurst;
 
+		// capture service and ioTime (easiest place to do it is here)
+		serviceTime = serviceTime + cBurst;
+		ioTime = ioTime + iBurst;
+
 		Burst* cpuBurst = new Burst(cBurst, "CPU");	bursts.push(cpuBurst);
 		Burst* ioBurst = new Burst(iBurst, "IO");	bursts.push(ioBurst);
 	}
 
 	// get the last cpu burst
 	inFile >> cBurst;
+	serviceTime = serviceTime + cBurst;
 	Burst* cpuBurst = new Burst(cBurst, "CPU");	bursts.push(cpuBurst);
 
-	Thread* t = new Thread(tid, pid, arrivalTime, "NEW", bursts);
+	Thread* t = new Thread(tid, pid, arrivalTime, "NEW", bursts, serviceTime, ioTime);
 	return t;
 }
 
@@ -155,7 +162,7 @@ Process* getProcess(std::ifstream &inFile) {
 		   >> numThreads;
 
 	for(int i = 0; i < numThreads; i++) {
-		Thread* tempThread = getThread(inFile, i + 1, processID);
+		Thread* tempThread = getThread(inFile, i, processID);
 		threads.push_back(tempThread);
 	}
 
@@ -208,73 +215,6 @@ fileData readFile(std::string inputFile) {
 	return {processes, threadOverhead, processOverhead};
 }
 
-/**
- displayProcessInfo:
- prints out the information regarding each process
- */
-void displayProcessInfo(std::vector<Process*> p) {
-
-	printf("\nProcess Info:\n");
-	for(unsigned int i = 0; i < p.size(); i++) {
-		p[i]->toString();
-		printf("\n");
-	}
-}
-
-/**
- displayInfo:
- prints out the information regarding each process
- */
-void displayInfo(std::vector<Process*> p) {
-
-	int sys_threads = 0;
-	int int_threads = 0;
-	int norm_threads = 0;
-	int bat_threads = 0;
-
-
-	for(unsigned int i = 0; i < p.size(); i++) {
-		if(p[i]->getPriority() == 0) sys_threads = sys_threads + p[i]->getProcessThreads().size();
-		if(p[i]->getPriority() == 1) int_threads = int_threads + p[i]->getProcessThreads().size();
-		if(p[i]->getPriority() == 2) norm_threads = norm_threads + p[i]->getProcessThreads().size();
-		if(p[i]->getPriority() == 3) bat_threads = bat_threads + p[i]->getProcessThreads().size();
-	}
-
-	// display system thread information:
-	printf("\n\n\nSYSTEM THREADS:\n");
-	printf("\tTotal Count:\t\t%d\n", sys_threads);
-	printf("\tAvg Response Time:\t%d\n", 0);
-	printf("\tAvg Turnaround Time:\t%d\n", 0);
-
-	// display interactive thread information:
-	printf("\nINTERACTIVE THREADS:\n");
-	printf("\tTotal Count:\t\t%d\n", int_threads);
-	printf("\tAvg Response Time:\t%d\n", 0);
-	printf("\tAvg Turnaround Time:\t%d\n", 0);
-
-	// display normal thread information:
-	printf("\nNORMAL THREADS:\n");
-	printf("\tTotal Count:\t\t%d\n", norm_threads);
-	printf("\tAvg Response Time:\t%d\n", 0);
-	printf("\tAvg Turnaround Time:\t%d\n", 0);
-
-	// display BATCH thread information:
-	printf("\nBATCH THREADS:\n");
-	printf("\tTotal Count:\t\t%d\n", bat_threads);
-	printf("\tAvg Response Time:\t%d\n", 0);
-	printf("\tAvg Turnaround Time:\t%d\n", 0);
-
-	// display calculated times
-	printf("\nTotal Elapsed Time:\t\t%d", 0);
-	printf("\nTotal Service Time:\t\t%d", 0);
-	printf("\nTotal I/O Time:\t\t\t%d", 0);
-	printf("\nTotal Dispatch Time:\t\t%d", 0);
-	printf("\nTotal Idle Time:\t\t%d\n", 0);
-
-	// display CPU statistics
-	printf("\nCPU Utilization:\t\t%2.2f%%", 0.0);
-	printf("\nCPU Efficiency:\t\t\t%2.2f%%\n", 0.0);
-}
 
 //-----------------------------------------------------------------------------------------------
 /**
@@ -310,17 +250,10 @@ int main(int argc, char** argv) {
 	processOverhead = fileData.processOverhead;
 
 	// create an object for scheduling
-	fcfsSimulator fcfs(processes, threadOverhead, processOverhead, v);
+	fcfsSimulator fcfs(processes, threadOverhead, processOverhead, v, t);
 
 	// call a scheduling scheme
 	fcfs.run();
-
-	// display basic system information
-	displayInfo(processes);
-
-	// display additional information based on user input flags
-	if(t) ; displayProcessInfo(processes);
-	//if(v) ; displayEventInfo(events);
 
 	printf("\n\n\nEverything seemed to run okey doky!\n");
 	return EXIT_SUCCESS;
