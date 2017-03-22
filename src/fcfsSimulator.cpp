@@ -1,4 +1,4 @@
-#include <iostream>
+#include <sstream>
 
 #include "fcfsSimulator.h"
 
@@ -117,16 +117,13 @@ void fcfsSimulator::threadArrived(Event* e) {
 	// if no running thread and an inactive dispatcher -> essentially handles the start case
 	if(!cpuBusy && !dispatcherActive) {
 
-		// get ready queue size for message #
-		int size = readyQueue.size();
-
 		// invoke process dispatch
 		Event* newEvent = new Event(EventTypes::DISPATCHER_INVOKED,
 									e->getTime(),
 									e->getProcessID(),
 									e->getThreadID(),
 									e->getPriority(),
-									"Selected from # threads; will run to completion of burst");
+									"Selected from 1 threads; will run to completion of burst");
 		events.push(newEvent);
 	}
 
@@ -318,12 +315,18 @@ void fcfsSimulator::cpuBurstCompleted(Event* e) {
 	// invoke the dispatcher if there are still threads in the ready queue
 	if(readyQueue.size() > 0) {
 
+		// build message
+		int size = readyQueue.size();
+		std::stringstream ss;
+		ss << "Selected from " << size << " threads; will run to completion of burst";
+		std::string message = ss.str();
+
 		Event* newEvent2 = new Event(EventTypes::DISPATCHER_INVOKED,
 									e->getTime(),
 									t->getProcessID(),
 									t->getThreadID(),
 									processes[t->getProcessID()]->getPriorityType(),
-									"Selected from # threads; will run to completion of burst");
+									message);
 		events.push(newEvent2);	
 	}
 	
@@ -344,13 +347,19 @@ void fcfsSimulator::ioBurstCompleted(Event* e) {
 	// if no thread is currently running on the cpu and the dispatcher is not already active
 	if(!cpuBusy && !dispatcherActive) {
 
+		// build message
+		int size = readyQueue.size();
+		std::stringstream ss;
+		ss << "Selected from " << size << " threads; will run to completion of burst";
+		std::string message = ss.str();
+
 		// dispatch the event
 		Event* newEvent = new Event(EventTypes::DISPATCHER_INVOKED,
 									e->getTime(),
 									t->getProcessID(),
 									t->getThreadID(),
 									processes[t->getProcessID()]->getPriorityType(),
-									"Selected from # threads; will run to completion of burst");
+									message);
 		events.push(newEvent);	
 	}
 }
@@ -372,14 +381,21 @@ void fcfsSimulator::threadComplete(Event* e) {
 	// continue dispatching events if the ready queue has them
 	if(!readyQueue.empty()) {
 
+		// look at the front of the ready queue
 		Thread* t = readyQueue.front();
+
+		// build message
+		int size = readyQueue.size();
+		std::stringstream ss;
+		ss << "Selected from " << size << " threads; will run to completion of burst";
+		std::string message = ss.str();
 
 		Event* newEvent = new Event(EventTypes::DISPATCHER_INVOKED,
 									e->getTime(),
 									t->getProcessID(),
 									t->getThreadID(),
 									processes[t->getProcessID()]->getPriorityType(),
-									"Selected from # threads; will run to completion of burst");
+									message);
 		events.push(newEvent);	
 	}
 

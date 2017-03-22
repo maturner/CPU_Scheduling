@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <queue>
+#include <string>
 
 #include "Process.h"
 #include "Thread.h"
@@ -9,9 +10,6 @@
 #include "Burst.h"
 #include "Process.h"
 
-#include <vector>
-#include <queue>
-#include <string>
 
 /**
  Simulator:

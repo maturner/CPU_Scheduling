@@ -10,8 +10,8 @@
 #include <sstream>
 #include <fstream>
 #include <string>
-#include <getopt.h>
 #include <cstring>
+#include <getopt.h>
 #include <queue>
 
 #include "fcfsSimulator.h"

@@ -14,7 +14,6 @@ private:
 	int burstLength;
 	const char* burstType;
 
-
 // public class variables and functions
 public:
 
