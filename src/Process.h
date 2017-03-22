@@ -39,7 +39,7 @@ public:
 	 priorityType:
 	 returns a string representation of the priority type
 	 */
-	char* getPriorityType();
+	std::string getPriorityType();
 
 	/**
 	 toString:

@@ -1,4 +1,3 @@
-#include <cstring>
 #include "Thread.h"
 
 /**
@@ -9,10 +8,13 @@ Thread::Thread() {
 	threadID = -1;
 	processID = -1;
 	arrivalTime = -1;
-	threadState = "NO_THREAD";
-	bursts;
+	startTime = -1;
+	endTime = -1;
 	serviceTime = -1;
 	ioTime = -1;
+	threadState = "NO_THREAD";
+	bursts;
+
 }
 
 /**
@@ -23,10 +25,12 @@ Thread::Thread(int i, int p, int t, std::string s, std::queue<Burst*> b, int st,
 	threadID = i;
 	processID = p;
 	arrivalTime = t;
-	threadState = s;
-	bursts = b;
+	startTime = -1;
+	endTime = -1;
 	serviceTime = st;
 	ioTime = it;
+	threadState = s;
+	bursts = b;
 
 	// get the specific number of each burst
 	numIOBursts = bursts.size() / 2;
@@ -42,7 +46,8 @@ Thread::Thread(const Thread &t) {
 	threadID = t.threadID;
 	processID = t.processID;
 	arrivalTime = t.arrivalTime;
-	startTime = -1;
+	startTime = t.startTime;
+	endTime = t.endTime;
 	numIOBursts = t.numIOBursts;
 	numCPUBursts = t.numCPUBursts;
 	threadState = t.threadState;

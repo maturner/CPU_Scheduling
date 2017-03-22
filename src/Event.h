@@ -37,8 +37,8 @@ private:
 	int time;
 	int processID;
 	int threadID;
-	char* tPriority;
-	char* message;
+	std::string tPriority;
+	std::string message;
 
 // public class variables and functions
 public:
@@ -47,7 +47,7 @@ public:
 	 Event:
 	 constructor function to build a new Event
 	 */
-	Event(int n, int t, int pid, int tid, char* p, char* m);
+	Event(int n, int t, int pid, int tid, std::string p, std::string m);
 
 	/**
 	 getter functions:
@@ -55,7 +55,7 @@ public:
 	int getTime() const { return time; }
 	int getProcessID() { return processID; }
 	int getThreadID() { return threadID; }
-	char* getPriority() { return tPriority; }
+	std::string getPriority() { return tPriority; }
 	int getType() { return eventType; }
 
 

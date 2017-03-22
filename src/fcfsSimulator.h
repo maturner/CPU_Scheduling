@@ -29,8 +29,17 @@ private:
 	int processOverhead;
 	int startTime = 0;
 	int endTime = 0;
+	int totalServiceTime = 0;
+	int totalIOTime = 0;
+	int dispatchTime = 0;
+	int idleTime = 0;
+
+	float cpuUtilization = 0.0;
+	float cpuEfficiency = 0.0;
+
 	bool dispatcherActive = false;
 	bool cpuBusy = false;
+	int pdt;
 
 	std::vector<Process*> processes;
 	std::priority_queue<Event*, std::vector<Event*>, comparison> events;
@@ -69,6 +78,12 @@ public:
 	void cpuBurstCompleted(Event* e);
 	void ioBurstCompleted(Event* e);
 	void threadComplete(Event* e);
+
+	/**
+	 calculateMetrics:
+	 calculates scheduling statistics based on results of the simulation
+	 */
+	void calculateMetrics();
 
 	/**
  	 displayInfo:

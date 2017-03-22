@@ -116,7 +116,7 @@ void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algor
 Thread* getThread(std::ifstream &inFile, int tid, int pid) {
 
 	// get the process header information
-	unsigned int arrivalTime, numBursts, cBurst, iBurst;
+	int arrivalTime, numBursts, cBurst, iBurst;
 	int serviceTime = 0;
 	int ioTime = 0;
 
@@ -126,7 +126,7 @@ Thread* getThread(std::ifstream &inFile, int tid, int pid) {
 	// get a queue of CPU and IO Bursts
 	std::queue<Burst*> bursts;
 
-	for(unsigned int i = 0; i < numBursts - 1; i++) {
+	for(int i = 0; i < numBursts - 1; i++) {
 		inFile >> cBurst
 			   >> iBurst;
 

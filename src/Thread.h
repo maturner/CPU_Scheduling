@@ -17,12 +17,13 @@ private:
 	int threadID;
 	int processID;
 	int arrivalTime;
-	int startTime = -1;
-	int endTime = -1;
+	int startTime;
+	int endTime;
 	int serviceTime;
 	int ioTime;
 	int numIOBursts;
 	int numCPUBursts;
+	
 	std::string threadState;
 	std::queue<Burst*> bursts;
 
@@ -61,6 +62,8 @@ public:
 	int getNumCPUBursts() { return numCPUBursts; }
 	int getServiceTime() { return serviceTime; }
 	int getIOTime() { return ioTime; }
+	int getTurnaroundTime() { return endTime - arrivalTime; }
+	int getResponseTime() { return startTime - arrivalTime; }
 	std::string getThreadState() { return threadState; }
 	std::queue<Burst*> getBursts() { return bursts; }
 

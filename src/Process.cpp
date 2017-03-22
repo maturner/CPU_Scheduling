@@ -1,4 +1,3 @@
-#include <iostream>
 #include "Process.h"
 
 /**
@@ -23,9 +22,9 @@ Process::Process() {
  priorityType:
  returns a string representation of the priority type
  */
-char* Process::getPriorityType() {
+std::string Process::getPriorityType() {
 
-	char* t;
+	std::string t;
 
 	if (priority == 0) t = "SYSTEM";
 	else if (priority == 1) t = "INTERACTIVE";
@@ -42,20 +41,17 @@ char* Process::getPriorityType() {
  */
 void Process::toString() {
 
-	printf("Process %d [%s]:\n", processID, getPriorityType());
+	printf("Process %d [%s]:\n", processID, getPriorityType().c_str());
 
 	for(unsigned int i = 0; i < threads.size(); i++) {
 
-		int a = threads[i]->getArrivalTime();
-		int e = threads[i]->getEndTime();
-
-		printf("\tThread%3d:   ARR:%3d   CPU:%3d   I/O:%3d   TRT:%4d   END:%4d\n",
+		printf("\tThread%3d:    ARR:%3d   CPU:%3d   I/O:%3d   TRT:%4d   END:%4d\n",
 			i, 
-			a, 
+			threads[i]->getArrivalTime(), 
 			threads[i]->getServiceTime(), 
 			threads[i]->getIOTime(), 
-			(e - a), 
-			e);
+			threads[i]->getTurnaroundTime(), 
+			threads[i]->getEndTime());
 	}
 }
 
