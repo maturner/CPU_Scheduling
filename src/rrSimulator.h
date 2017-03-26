@@ -12,11 +12,11 @@
 
 
 /**
- fcfsSimulator:
- a class that will schedule and run threads according to the first come first
- serve scheduling algorithm.
+ rrSimulator:
+ a class that will schedule and run threads according to the round robin scheduling
+ algorithm.
  */
-class fcfsSimulator {
+class rrSimulator {
 
 private:
 
@@ -31,6 +31,7 @@ private:
 	int totalIOTime = 0;
 	int dispatchTime = 0;
 	int idleTime = 0;
+	int timeQuantum = 3;
 
 	float cpuUtilization = 0.0;
 	float cpuEfficiency = 0.0;
@@ -50,28 +51,29 @@ private:
 public:
 
 	/**
-	 rrSimulator:
-	 a constructor that creates a first come first serve scheduling simulation
+ 	 rrSimulator:
+	 a constructor that creates a round robin scheduling simulation
 	 */
-	fcfsSimulator(std::vector<Process*> p, int to, int po, bool v, bool t);
+	rrSimulator(std::vector<Process*> p, int to, int po, bool v, bool t);
 
 
 	/**
 	 getter and setter for the running thread
 	 */
 	Thread* getCurrentThread() { return currentThread; }
+	int getTimeQuantum() { return timeQuantum; }
 	void setCurrentThread(Thread* t) { currentThread = t; }
 
 	/**
- 	 firstComeFirstServe:
-	 a simple scheduling algorithm
+ 	 run:
+	 runs the simulation using the following event functions
 	 */
 	void run();
-
 	void threadArrived(Event* e);
 	void dispatchInvoked(Event* e);
 	void processDispatchComplete(Event* e);
 	void threadDispatchComplete(Event* e);
+	void threadPreempted (Event* e);
 	void cpuBurstCompleted(Event* e);
 	void ioBurstCompleted(Event* e);
 	void threadComplete(Event* e);
