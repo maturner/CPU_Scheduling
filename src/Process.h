@@ -21,11 +21,16 @@ public:
 
 	/**
 	 Process:
-	 constructor function to build a new process
+	 constructor functions to build a new process
 	 */
+	Process();
 	Process(int i, int p, std::vector<Thread*> th);
 
-	Process();
+	/**
+	 ~Process:
+	 desructor functions to free up memory
+	 */
+	~Process();
 
 	/**
 	 getter functions:

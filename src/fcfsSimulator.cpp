@@ -336,7 +336,7 @@ void fcfsSimulator::cpuBurstCompleted(Event* e) {
 
 /**
  ioBurstCompleted:
- not really sure what the fuck to do here.
+ push the process back onto the ready queue and invoke the dispatcher if not already busy
  */
 void fcfsSimulator::ioBurstCompleted(Event* e) {
 

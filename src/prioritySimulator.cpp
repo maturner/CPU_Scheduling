@@ -1,12 +1,13 @@
 #include <sstream>
 
-#include "rrSimulator.h"
+#include "prioritySimulator.h"
 
 /**
- rrSimulator:
- a constructor that creates a round robin scheduling simulation
+ fcfsSimulator:
+ a constructor that allows the main proggram to make use of the following
+ scheduling algorithms
  */
-rrSimulator::rrSimulator(std::vector<Process*> p, int to, int po, bool v, bool t) {
+prioritySimulator::prioritySimulator(std::vector<Process*> p, int to, int po, bool v, bool t) {
 
 	// initialize class variables
 	processes = p;
@@ -41,10 +42,10 @@ rrSimulator::rrSimulator(std::vector<Process*> p, int to, int po, bool v, bool t
 }
 
 /**
- run:
- runs the simulation using the following event functions
+ firstComeFirstServe:
+ a function to schedule the next process to run
  */
-void rrSimulator::run() {
+void prioritySimulatorr::run() {
 
 	while (!events.empty()) {
 		Event* event = events.top();
@@ -76,7 +77,7 @@ void rrSimulator::run() {
             }
 
             case EventTypes::THREAD_PREEMPTED: {
-            	threadPreempted (event);
+            	// no preemption for priority scheduling
                 break;
             }
 
@@ -111,7 +112,7 @@ void rrSimulator::run() {
  initially checks for thread in the cpu or if the dispatcher is active: if not, it adds the
  first dispatching event. also will add the thread to the ready queue.
  */
-void rrSimulator::threadArrived(Event* e) {
+void prioritySimulator::threadArrived(Event* e) {
 
 	// if no running thread and an inactive dispatcher -> essentially handles the start case
 	if(!cpuBusy && !dispatcherActive) {
@@ -126,9 +127,17 @@ void rrSimulator::threadArrived(Event* e) {
 		events.push(newEvent);
 	}
 
-	// push the thread onto the ready queue
+	// push the thread onto the appropriate ready queue
 	Thread* t = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()];
-	readyQueue.push(t);
+
+	if(processes[e->getProcessID()]->getProcessID() == 0)
+		readyQueue0.push(t);
+	else if(processes[e->getProcessID()]->getProcessID() == 1)
+		readyQueue1.push(t);
+	else if(processes[e->getProcessID()]->getProcessID() == 2)
+		readyQueue2.push(t);
+	else
+		readyQueue3.push(t);
 }
 
 /**
@@ -136,14 +145,22 @@ void rrSimulator::threadArrived(Event* e) {
  sets busy flag and determines whether the OS has to perform a full process switch or can 
  perfomr a simple thread switch.
  */
-void rrSimulator::dispatchInvoked(Event* e) {
+void prioritySimulator::dispatchInvoked(Event* e) {
 
 	// set the dispatcher flag to true
 	dispatcherActive = true;
 	pdt = e->getTime();
 
-	// look at the front of the ready queue
-	Thread* t = readyQueue.front();
+	// look at the front of the ready queue with the highest priority
+	Thread* t;
+	if(!readyQueue0.empty())
+		t = readyQueue0.front();
+	else if(!readyQueue1.empty()) 
+		t = readyQueue1.front();
+	else if(!readyQueue2.empty())
+		t = readyQueue2.front();
+	else
+		t = readyQueue3.front();
 
 	// if the new thread is not part of the same process:
 	if(t->getProcessID() != previousThread->getProcessID()) {
@@ -181,7 +198,7 @@ void rrSimulator::dispatchInvoked(Event* e) {
  sets flags accordingly. creates events based on if the thread will complete on this
  turn or needs to be blocked for an io request.
  */
-void rrSimulator::processDispatchComplete(Event* e) {
+void prioritySimulator::processDispatchComplete(Event* e) {
 
 	// if this is the process's first burst, set the start time
 	if(processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getStartTime() < 0)
@@ -194,27 +211,30 @@ void rrSimulator::processDispatchComplete(Event* e) {
 	// indicate that the cpu is busy
 	cpuBusy = true;
 
-	// get the current thread
-	currentThread = readyQueue.front(); readyQueue.pop();
+	// get the current thread from the appropriate queue
+	if(!readyQueue0.empty()) {
+		currentThread = readyQueue0.front(); 
+		readyQueue0.pop();
+	}
+	else if(!readyQueue1.empty()) {
+		currentThread = readyQueue1.front(); 
+		readyQueue1.pop();
+	}
+	else if(!readyQueue2.empty()) {
+		currentThread = readyQueue2.front();
+		readyQueue2.pop();
+	}
+	else {
+		currentThread = readyQueue3.front();
+		readyQueue3.pop();
+	}
 
 	// get the next cpu burst time
 	int runTime = currentThread->getBursts().front()->getBurstLength();
 	currentThread->removeBurst();
 
-		// check to see if the thread will be need to be preempted
-	if (currentThread->getServiceTime() > timeQuantum) {
-
-		// if so, indicate when the thread will need to be prempted
-		Event* newEvent = new Event(EventTypes::THREAD_PREEMPTED,
-									e->getTime() + timeQuantum,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from RUNNING to READY");
-	}
-
 	// if this is not the last burst:
-	else if(!currentThread->getBursts().empty()) {
+	if(!currentThread->getBursts().empty()) {
 	
 		// indicate when the process dispatch will be complete
 		Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
@@ -245,40 +265,43 @@ void rrSimulator::processDispatchComplete(Event* e) {
  sets flags accordingly. creates events based on if the thread will complete on this
  turn or needs to be blocked for an io request.
  */
-void rrSimulator::threadDispatchComplete(Event* e){
+void prioritySimulator::threadDispatchComplete(Event* e){
 
 	// if this is the process's first burst, set the start time
 	if(processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getStartTime() < 0)
 		processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->setStartTime(e->getTime());
 
-	// indicate that the dispatcher is complete and add to its total run time
+	// indicate that the dispatcher is complete and get its run time
 	dispatcherActive = false;
 	dispatchTime = dispatchTime + (e->getTime() - pdt);
 
 	// indicate that the cpu is busy
 	cpuBusy = true;
 
-	// get the current thread
-	currentThread = readyQueue.front(); readyQueue.pop();
+	// get the current thread from the appropriate queue
+	if(!readyQueue0.empty()) {
+		currentThread = readyQueue0.front(); 
+		readyQueue0.pop();
+	}
+	else if(!readyQueue1.empty()) {
+		currentThread = readyQueue1.front(); 
+		readyQueue1.pop();
+	}
+	else if(!readyQueue2.empty()) {
+		currentThread = readyQueue2.front();
+		readyQueue2.pop();
+	}
+	else {
+		currentThread = readyQueue3.front();
+		readyQueue3.pop();
+	}
 
 	// get the next cpu burst time
 	int runTime = currentThread->getBursts().front()->getBurstLength();
 	currentThread->removeBurst();
 
-	// check to see if the thread will be need to be preempted
-	if (currentThread->getServiceTime() > timeQuantum) {
-
-		// if so, indicate when the thread will need to be prempted
-		Event* newEvent = new Event(EventTypes::THREAD_PREEMPTED,
-									e->getTime() + timeQuantum,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from RUNNING to READY");
-	}
-
 	// if this is not the last burst:
-	else if(!currentThread->getBursts().empty()) {
+	if(!currentThread->getBursts().empty()) {
 	
 		// indicate when the process dispatch will be complete
 		Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
@@ -301,43 +324,7 @@ void rrSimulator::threadDispatchComplete(Event* e){
 									e->getPriority(),
 									"Transitioned from RUNNING to EXIT");
 		events.push(newEvent);
-
 	}
-
-}
-
-/**
- threadPreempted:
- is called once if the current running process is taking up more than the allocated amount of
- CPU time.  This even places the thread back in the ready queue
-*/
-void rrSimulator::threadPreempted (Event* e) {
-
-	// set the cpu to not busy
-	cpuBusy = false;
-
-	// put the current thread back in the ready queue
-	readyQueue.push(currentThread);
-	currentThread = nullThread;
-
-	// get ready to dispatch the next thread in the ready queue
-	Thread* t = readyQueue.front(); 
-
-	// build message
-	int size = readyQueue.size();
-	std::stringstream ss;
-	ss << "Selected from " << size << " threads; will run to completion of burst";
-	std::string message = ss.str();
-
-	// invoke the dispatcher
-	Event* newEvent = new Event(EventTypes::DISPATCHER_INVOKED,
-								e->getTime(),
-								t->getProcessID(),
-								t->getThreadID(),
-								processes[t->getProcessID()]->getPriorityType(),
-								message);
-	events.push(newEvent);	
-
 }
 
 /**
@@ -345,12 +332,12 @@ void rrSimulator::threadPreempted (Event* e) {
  only is called if more IO events exist, so it will create an event for when this is completed. also
  begins dispatch of the next thread in the ready queue.
  */
-void rrSimulator::cpuBurstCompleted(Event* e) {
+void prioritySimulator::cpuBurstCompleted(Event* e) {
 
 	// set the previous thread to what was the current thread
 	previousThread = currentThread;
 
-	// set cpu to not busy
+	// set cpu to not busy and get updated time
 	cpuBusy = false;
 
 	// get the io burst time
@@ -369,11 +356,11 @@ void rrSimulator::cpuBurstCompleted(Event* e) {
 	// get the next process in the ready queue
 	Thread* t = readyQueue.front();
 
-	// invoke the dispatcher if there are still threads in the ready queue
-	if(readyQueue.size() > 0) {
+	// invoke the dispatcher if there are still threads in any of the ready queues
+	if(readyQueue0.size() > 0 || readyQueue1.size() > 0 || readyQueue2.size() > 0 || readyQueue3.size() > 0) {
 
 		// build message
-		int size = readyQueue.size();
+		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();;
 		std::stringstream ss;
 		ss << "Selected from " << size << " threads; will run to completion of burst";
 		std::string message = ss.str();
@@ -393,19 +380,25 @@ void rrSimulator::cpuBurstCompleted(Event* e) {
 
 /**
  ioBurstCompleted:
- push the process back onto the ready queue and invoke the dispatcher if not already busy
+ push the process back onto the appropriate ready queue and invoke the dispatcher if not already busy
  */
-void rrSimulator::ioBurstCompleted(Event* e) {
+void prioritySimulator::ioBurstCompleted(Event* e) {
 
 	// push the thread back onto the queue
 	Thread* t = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()];
-	readyQueue.push(t);
+	int priority = processes[e->getProcessID()]->getPriority();
+
+	// push the thread back onto the appropriate ready queue
+	if(priority == 0) readyQueue0.push(t);
+	else if(priority== 1) readyQueue1.push(t);
+	else if(priority == 2) readyQueue2.push(t);
+	else readyQueue3.push(t);
 
 	// if no thread is currently running on the cpu and the dispatcher is not already active
 	if(!cpuBusy && !dispatcherActive) {
 
 		// build message
-		int size = readyQueue.size();
+		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();
 		std::stringstream ss;
 		ss << "Selected from " << size << " threads; will run to completion of burst";
 		std::string message = ss.str();
@@ -426,7 +419,7 @@ void rrSimulator::ioBurstCompleted(Event* e) {
  upon completion of a thread, the dispatcher is once again invoked only if there
  are more threads waiting in the ready queue.
  */
-void rrSimulator::threadComplete(Event* e) {
+void prioritySimulator::threadComplete(Event* e) {
 
 	// reset current and previous threads
 	previousThread = currentThread;
@@ -438,11 +431,19 @@ void rrSimulator::threadComplete(Event* e) {
 	// continue dispatching events if the ready queue has them
 	if(!readyQueue.empty()) {
 
-		// look at the front of the ready queue
-		Thread* t = readyQueue.front();
+		// look at the front of the appropriate ready queue
+		Thread* t;
+		if(!readyQueue0.empty())
+			t = readyQueue0.front();
+		else if(!readyQueue1.empty()) 
+			t = readyQueue1.front();
+		else if(!readyQueue2.empty())
+			t = readyQueue2.front();
+		else
+			t = readyQueue3.front();
 
 		// build message
-		int size = readyQueue.size();
+		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();;
 		std::stringstream ss;
 		ss << "Selected from " << size << " threads; will run to completion of burst";
 		std::string message = ss.str();
@@ -465,7 +466,7 @@ void rrSimulator::threadComplete(Event* e) {
  calculateMetrics:
  calculates scheduling statistics based on results of the simulation
  */
-void rrSimulator::calculateMetrics() {
+void prioritySimulator::calculateMetrics() {
 
 	// calculate total service time andIO time
 	for(int i = 0; i < (int)processes.size(); i++) {
@@ -494,7 +495,7 @@ void rrSimulator::calculateMetrics() {
  displayInfo:
  prints out the information regarding each process
  */
-void rrSimulator::displayInfo() {
+void prioritySimulator::displayInfo() {
 
 	int sys_threads = 0;  float sys_rt = 0;  float sys_trt = 0;
 	int int_threads = 0;  float int_rt = 0;  float int_trt = 0;
@@ -616,7 +617,7 @@ void rrSimulator::displayInfo() {
  displayProcessInfo:
  prints out the information regarding each process
  */
-void rrSimulator::displayProcessInfo() {
+void prioritySimulator::displayProcessInfo() {
 
 	printf("\nProcess Info:\n");
 	for(unsigned int i = 0; i < processes.size(); i++) {

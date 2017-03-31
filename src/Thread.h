@@ -33,15 +33,16 @@ public:
 
 	/**
 	 Thread:
-	 default constructor
+	 constructor functions to build a new thread
 	 */
 	Thread();
+	Thread(int i, int p, int t, std::string s, std::queue<Burst*> b, int st, int it);
 
 	/**
-	 Thread:
-	 constructor function to build a new thread
+	 ~Thread:
+	 desructor functions to free up memory
 	 */
-	Thread(int i, int p, int t, std::string s, std::queue<Burst*> b, int st, int it);
+	~Thread();
 
 	/**
 	 Thread:
