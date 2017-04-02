@@ -40,6 +40,8 @@ III. Approximate Time Spent:
 	Deliverable 2: 15-16 hours
 	Deliverable 3 (final): unknown as of current
 
-IV: Custom Scheduler Essay:
+IV: Custom Scheduler Explanation:
 	
-	The custom scheduler settled on is similar to the HRRN algorithm
+	The custom scheduler settled on is simple combination of the Round Robin Scheduler and the Priority scheduler with a few additions.  Threads will be preempted if run past an alotted time period.  This time quantum is longer than the one specified in the RR simulation (specifically, it is set to 8) to allow more threads to run to completion of a CPU burst.  This is intended as a better balance of time, prevent threads from occupying too much CPU time but also allowing them time adequate time to complete and move to a BLOCKED or EXIT state.
+
+	When it comes time to preempt a thread or move it to an event queue, the dispatcher will look for a thread from the same process to run next. This way, context switch time is minimized since it is attempting to only perform a thread switch instead of an entire process (as the overhead required for switching between threads is much less than the overhead required for switching between processes).  It starts by looking in the ready queue associated with the current thread.  If no more threads of that process are found, it will move to the highest priority queue with a READY thread.

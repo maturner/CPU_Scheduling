@@ -122,7 +122,7 @@ void rrSimulator::threadArrived(Event* e) {
 									e->getProcessID(),
 									e->getThreadID(),
 									e->getPriority(),
-									"Selected from 1 threads; will run to completion of burst");
+									"Selected from 1 threads; will run to completion of burst or end of time quantum");
 		events.push(newEvent);
 	}
 
@@ -326,7 +326,7 @@ void rrSimulator::threadPreempted (Event* e) {
 	// build message
 	int size = readyQueue.size();
 	std::stringstream ss;
-	ss << "Selected from " << size << " threads; will run to completion of burst";
+	ss << "Selected from " << size << " threads; will run to completion of burst or end of time quantum";
 	std::string message = ss.str();
 
 	// invoke the dispatcher
@@ -407,7 +407,7 @@ void rrSimulator::ioBurstCompleted(Event* e) {
 		// build message
 		int size = readyQueue.size();
 		std::stringstream ss;
-		ss << "Selected from " << size << " threads; will run to completion of burst";
+		ss << "Selected from " << size << " threads; will run to completion of burst or end of time quantum";
 		std::string message = ss.str();
 
 		// dispatch the event
@@ -444,7 +444,7 @@ void rrSimulator::threadComplete(Event* e) {
 		// build message
 		int size = readyQueue.size();
 		std::stringstream ss;
-		ss << "Selected from " << size << " threads; will run to completion of burst";
+		ss << "Selected from " << size << " threads; will run to completion of burstor end of time quantum";
 		std::string message = ss.str();
 
 		Event* newEvent = new Event(EventTypes::DISPATCHER_INVOKED,
