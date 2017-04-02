@@ -16,19 +16,18 @@
 
 #include "fcfsSimulator.h"
 
-
 /**
  * get_flag:
  * checks for user command lind flags every loop of the main program
  */
-void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algorithm, int* help) {
+void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algorithm) {
 
 	// make a struct that defines user options
 	static struct option long_options[] = {
-		{"per_thread", 	no_argument, 		NULL, 	't'},
-		{"verbose", 	no_argument, 		NULL, 	'v'},
-		{"algorithm", 	required_argument, 	NULL, 	'a'},
-		{"help", 		no_argument, 		NULL, 	'h'},
+		{"per_thread", 	0, 		NULL, 	't'},
+		{"verbose", 		0, 		NULL, 	'v'},
+		{"algorithm", 	1, 		NULL, 	'a'},
+		{"help", 				0, 		NULL, 	'h'},
 		{0, 0, 0, 0}
 	};
 
@@ -39,7 +38,7 @@ void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algor
 		int option_index = 0;
 
 		// get the flag character
-		int c = getopt_long(argc, argv, "t:v:a:h", long_options, &option_index);
+		int c = getopt_long(argc, argv, "tva:h", long_options, &option_index);
 
 		// if returned -1, invalid character entered, break the loop
 		if(c == -1) break;
@@ -52,7 +51,6 @@ void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algor
 
 				// set to true
 				*per_thread = true;
-
 				break;
 
 			// for 'verbose':
@@ -60,7 +58,6 @@ void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algor
 
 				// set to true
 				*verbose = true;
-
 				break;
 
 			// for 'algorithm':
@@ -77,7 +74,6 @@ void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algor
 					printf("Invalid option detected.\nDefaulting to FCFS.\n");
 					*algorithm = 0;
 				}
-
 				break;
 
 			// for 'help':
@@ -100,9 +96,9 @@ void get_flag(int argc, char** argv, bool* per_thread, bool* verbose, int* algor
 		}
 
 		// print any remaining command line arguments (not options)
-		if (optind < argc) {
+		if (option_index < argc) {
 			std::cout << "non-option ARGV-elements:" << std::endl;
-			while(optind < argc) printf("%s ", argv[optind++]);
+			while(option_index < argc) printf("%s ", argv[option_index++]);
 			putchar('\n');
 		}
 	}
@@ -227,10 +223,10 @@ int main(int argc, char** argv) {
 	bool t = false;
 	bool v = false;
 	int a = 0;
-	int h = 0;
+	//char* file;
 
 	// get a command line flags
-	get_flag(argc, argv, &t, &v, &a, &h);
+	get_flag(argc, argv, &t, &v, &a);
 
 	// scheduling variables
 	std::vector<Process*> processes;	// a vector that holds the hierarchy of data from the input file
