@@ -64,7 +64,6 @@ public:
 	 getter and setter for the running thread
 	 */
 	Thread* getCurrentThread() { return currentThread; }
-	int getTimeQuantum() { return timeQuantum; }
 	void setCurrentThread(Thread* t) { currentThread = t; }
 
 	/**

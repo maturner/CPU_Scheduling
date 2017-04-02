@@ -45,7 +45,7 @@ prioritySimulator::prioritySimulator(std::vector<Process*> p, int to, int po, bo
  firstComeFirstServe:
  a function to schedule the next process to run
  */
-void prioritySimulatorr::run() {
+void prioritySimulator::run() {
 
 	while (!events.empty()) {
 		Event* event = events.top();

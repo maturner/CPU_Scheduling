@@ -65,7 +65,7 @@ Thread::Thread(const Thread &t) {
 Thread::~Thread() {
 
 	for(int i = 0; i < (int)bursts.size(); i++) {
-		delete bursts[i];
+		//delete bursts[i];
 	}
 }
 

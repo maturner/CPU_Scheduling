@@ -25,7 +25,7 @@ $(NAME): $(OBJS)
 
 # Build and run the program.
 run: $(NAME)
-	./$(NAME) input.txt
+	./$(NAME) -a RR input.txt
 
 # Remove all generated files.
 clean:

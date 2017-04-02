@@ -51,7 +51,7 @@ void rrSimulator::run() {
 		events.pop();
 
 		// if verbose option chosen, display the current event
-		if(verbose) event->toString();
+		if(verbose) ; event->toString();
 
 		// update the event queue based on the current event
         switch(event->getType()){
@@ -76,7 +76,7 @@ void rrSimulator::run() {
             }
 
             case EventTypes::THREAD_PREEMPTED: {
-            	threadPreempted (event);
+            	threadPreempted(event);
                 break;
             }
 
@@ -199,10 +199,15 @@ void rrSimulator::processDispatchComplete(Event* e) {
 
 	// get the next cpu burst time
 	int runTime = currentThread->getBursts().front()->getBurstLength();
-	currentThread->removeBurst();
 
-		// check to see if the thread will be need to be preempted
-	if (currentThread->getServiceTime() > timeQuantum) {
+	// check to see if the thread will be need to be preempted
+	if (runTime > timeQuantum) {
+
+		//printf("\nThis should print if the thread needs to be preempted");
+		//printf("\nThe expected service time is %d where as the time quantum is %d.\n", currentThread->getServiceTime(), timeQuantum);
+
+		// decrement the burst length by the set amount
+		currentThread->getBursts().front()->decrement(timeQuantum);
 
 		// if so, indicate when the thread will need to be prempted
 		Event* newEvent = new Event(EventTypes::THREAD_PREEMPTED,
@@ -211,32 +216,45 @@ void rrSimulator::processDispatchComplete(Event* e) {
 									e->getThreadID(),
 									e->getPriority(),
 									"Transitioned from RUNNING to READY");
-	}
-
-	// if this is not the last burst:
-	else if(!currentThread->getBursts().empty()) {
-	
-		// indicate when the process dispatch will be complete
-		Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
-									e->getTime() + runTime,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from RUNNING to BLOCKED");
 		events.push(newEvent);
 	}
 
-	// otherwise:
+	// if not:
 	else {
+		
+		// remove the burst from the thread's burst queue
+		currentThread->removeBurst();
 
-		// creat the exit event
-		Event* newEvent = new Event(EventTypes::THREAD_COMPLETED,
-									e->getTime() + runTime,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from RUNNING to EXIT");
-		events.push(newEvent);
+		// if this is not the last burst but it runs to completion:
+		if(!currentThread->getBursts().empty()) {
+			
+			//printf("\nThis should print if the thread has a cpu burst that will start running.\n");
+
+			// indicate when the process dispatch will be complete
+			Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
+										e->getTime() + runTime,
+										e->getProcessID(),
+										e->getThreadID(),
+										e->getPriority(),
+										"Transitioned from RUNNING to BLOCKED");
+			events.push(newEvent);
+		}
+
+		// otherwise:
+		else {
+
+			//printf("\nThis should print if the thread will be completed after this cpu burst.\n");
+
+			// creat the exit event
+			Event* newEvent = new Event(EventTypes::THREAD_COMPLETED,
+										e->getTime() + runTime,
+										e->getProcessID(),
+										e->getThreadID(),
+										e->getPriority(),
+										"Transitioned from RUNNING to EXIT");
+			events.push(newEvent);
+
+		}
 	}
 }
 
@@ -255,7 +273,7 @@ void rrSimulator::threadDispatchComplete(Event* e){
 	dispatcherActive = false;
 	dispatchTime = dispatchTime + (e->getTime() - pdt);
 
-	// indicate that the cpu is busy
+	// indicate that the cpu is now busy
 	cpuBusy = true;
 
 	// get the current thread
@@ -263,10 +281,21 @@ void rrSimulator::threadDispatchComplete(Event* e){
 
 	// get the next cpu burst time
 	int runTime = currentThread->getBursts().front()->getBurstLength();
-	currentThread->removeBurst();
+
+	int cb = ((currentThread->getBursts().size()) / 2) + 1;
+	int ib = ((currentThread->getBursts().size()) / 2);
+
+	//printf("\nP%dT%d has %d cpu bursts and %d io bursts remaining", currentThread->getProcessID(), currentThread->getThreadID(), cb, ib);
+	//printf("\n\tthe next cpu burst has %d time remaining (time quantum is %d)\n", runTime, timeQuantum);
 
 	// check to see if the thread will be need to be preempted
-	if (currentThread->getServiceTime() > timeQuantum) {
+	if (runTime > timeQuantum) {
+
+		//printf("\nThis should print if the thread needs to be preempted");
+		//printf("\nThe expected service time is %d where as the time quantum is %d.\n", currentThread->getServiceTime(), timeQuantum);
+
+		// decrement the burst length by the set amount
+		currentThread->getBursts().front()->decrement(timeQuantum);
 
 		// if so, indicate when the thread will need to be prempted
 		Event* newEvent = new Event(EventTypes::THREAD_PREEMPTED,
@@ -275,33 +304,45 @@ void rrSimulator::threadDispatchComplete(Event* e){
 									e->getThreadID(),
 									e->getPriority(),
 									"Transitioned from RUNNING to READY");
-	}
-
-	// if this is not the last burst:
-	else if(!currentThread->getBursts().empty()) {
-	
-		// indicate when the process dispatch will be complete
-		Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
-									e->getTime() + runTime,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from RUNNING to BLOCKED");
 		events.push(newEvent);
 	}
 
-	// otherwise:
+	// if not:
 	else {
+		
+		// remove the burst from the thread's burst queue
+		currentThread->removeBurst();
 
-		// creat the exit event
-		Event* newEvent = new Event(EventTypes::THREAD_COMPLETED,
-									e->getTime() + runTime,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from RUNNING to EXIT");
-		events.push(newEvent);
+		// if this is not the last burst but it runs to completion:
+		if(!currentThread->getBursts().empty()) {
+			
+			//printf("\nThis should print if the thread has a cpu burst that will start running.\n");
 
+			// indicate when the process dispatch will be complete
+			Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
+										e->getTime() + runTime,
+										e->getProcessID(),
+										e->getThreadID(),
+										e->getPriority(),
+										"Transitioned from RUNNING to BLOCKED");
+			events.push(newEvent);
+		}
+
+		// otherwise:
+		else {
+
+			//printf("\nThis should print if the thread will be completed after this cpu burst.\n");
+
+			// creat the exit event
+			Event* newEvent = new Event(EventTypes::THREAD_COMPLETED,
+										e->getTime() + runTime,
+										e->getProcessID(),
+										e->getThreadID(),
+										e->getPriority(),
+										"Transitioned from RUNNING to EXIT");
+			events.push(newEvent);
+
+		}
 	}
 
 }
@@ -318,6 +359,9 @@ void rrSimulator::threadPreempted (Event* e) {
 
 	// put the current thread back in the ready queue
 	readyQueue.push(currentThread);
+
+	// set the previous thread to the current thread and the current thread to nothing
+	previousThread = currentThread;
 	currentThread = nullThread;
 
 	// get ready to dispatch the next thread in the ready queue
@@ -328,6 +372,8 @@ void rrSimulator::threadPreempted (Event* e) {
 	std::stringstream ss;
 	ss << "Selected from " << size << " threads; will run to completion of burst or end of time quantum";
 	std::string message = ss.str();
+
+	//printf("\nThis is inside the threadPreempted function so the new event should be pushed.\n");
 
 	// invoke the dispatcher
 	Event* newEvent = new Event(EventTypes::DISPATCHER_INVOKED,

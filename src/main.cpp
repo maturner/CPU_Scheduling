@@ -15,6 +15,9 @@
 #include <queue>
 
 #include "fcfsSimulator.h"
+#include "rrSimulator.h"
+#include "prioritySimulator.h"
+#include "customSimulator.h"
 
 /**
  * get_flag:
@@ -244,25 +247,28 @@ int main(int argc, char** argv) {
 	threadOverhead = fileData.threadOverhead;
 	processOverhead = fileData.processOverhead;
 
-	// call the desired algorithm and run the simulation
+	// call the desired algorithm and run the simulation (default is fcfs)
 	if(a == 1) {
 		rrSimulator rr(processes, threadOverhead, processOverhead, v, t);
 		rr.run();
+		printf("\n\nRan the RR scheduling algorithm.\n");
 	}
 	else if(a == 2) {
 		prioritySimulator p(processes, threadOverhead, processOverhead, v, t);
 		p.run();
+		printf("\n\nRan the PRIORITY scheduling algorithm.\n");
 	}
 	else if(a == 3) {
-		//customSimulator c(processes, threadOverhead, processOverhead, v, t);
-		//c.run();
+		customSimulator c(processes, threadOverhead, processOverhead, v, t);
+		c.run();
+		printf("\n\nRan the CUSTOM scheduling algorithm.\n");
 	}
 	else {
 		fcfsSimulator fcfs(processes, threadOverhead, processOverhead, v, t);
 		fcfs.run();
+		printf("\n\nRan the FCFS scheduling algorithm.\n");
+	}
 
-
-	printf("\n\n\nEverything seemed to run okey doky!\n");
 	return EXIT_SUCCESS;
 }
 //-----------------------------------------------------------------------------------------------

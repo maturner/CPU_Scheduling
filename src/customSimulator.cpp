@@ -366,15 +366,24 @@ void customSimulator::threadPreempted (Event* e) {
 	// set the cpu to not busy
 	cpuBusy = false;
 
-	// put the current thread back in the ready queue
-	readyQueue.push(currentThread);
+	// put the current thread back in the appropriate ready queue
+	if(processes[currentThread->getProcessID()]->getPriority() == 0) readyQueue0.push(currentThread);
+	else if(processes[currentThread->getProcessID()]->getPriority() == 1) readyQueue1.push(currentThread);
+	else if(processes[currentThread->getProcessID()]->getPriority() == 2) readyQueue2.push(currentThread);
+	else readyQueue3.push(currentThread);
+	
+	// set the current thread to the null thread
 	currentThread = nullThread;
 
-	// get ready to dispatch the next thread in the ready queue
-	Thread* t = readyQueue.front(); 
+	// get ready to dispatch the next thread in the highest priority ready queue
+	Thread* t;
+	if(!readyQueue0.empty()) t = readyQueue0.front(); 
+	else if(!readyQueue1.empty()) t = readyQueue1.front();
+	else if(!readyQueue2.empty()) t = readyQueue2.front();
+	else t = readyQueue3.front();
 
 	// build message
-	int size = readyQueue.size();
+	int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();
 	std::stringstream ss;
 	ss << "Selected from " << size << " threads; will run to completion of burst";
 	std::string message = ss.str();
@@ -466,7 +475,7 @@ void customSimulator::ioBurstCompleted(Event* e) {
 	if(!cpuBusy && !dispatcherActive) {
 
 		// build message
-		int size = readyQueue.size();
+		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();
 		std::stringstream ss;
 		ss << "Selected from " << size << " threads; will run to completion of burst";
 		std::string message = ss.str();
@@ -506,11 +515,8 @@ void customSimulator::threadComplete(Event* e) {
 		else if(!readyQueue2.empty()) t = readyQueue2.front();
 		else t = readyQueue3.front();
 
-		// look at the front of the ready queue
-		Thread* t = readyQueue.front();
-
 		// build message
-		int size = readyQueue.size();
+		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();
 		std::stringstream ss;
 		ss << "Selected from " << size << " threads; will run to completion of burst";
 		std::string message = ss.str();
