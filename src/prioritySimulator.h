@@ -12,11 +12,11 @@
 
 
 /**
- fcfsSimulator:
- a class that will schedule and run threads according to the first come first
- serve scheduling algorithm.
+ prioritySimulator:
+ a class that will schedule and run threads according to the a priority algorithm that
+ allows threads with the higher priority to run first.
  */
-class fcfsSimulator {
+class prioritySimulator {
 
 private:
 
@@ -41,7 +41,11 @@ private:
 
 	std::vector<Process*> processes;
 	std::priority_queue<Event*, std::vector<Event*>, comparison> events;
-	std::queue<Thread*> readyQueue;
+	
+	std::queue<Thread*> readyQueue0;
+	std::queue<Thread*> readyQueue1;
+	std::queue<Thread*> readyQueue2;
+	std::queue<Thread*> readyQueue3;
 
 	Thread* nullThread;
 	Thread* previousThread;
@@ -50,24 +54,24 @@ private:
 public:
 
 	/**
-	 rrSimulator:
-	 a constructor that creates a first come first serve scheduling simulation
+ 	 prioritySimulator:
+	 a constructor that creates a round robin scheduling simulation
 	 */
-	fcfsSimulator(std::vector<Process*> p, int to, int po, bool v, bool t);
+	prioritySimulator(std::vector<Process*> p, int to, int po, bool v, bool t);
 
 
 	/**
 	 getter and setter for the running thread
 	 */
 	Thread* getCurrentThread() { return currentThread; }
+	int getTimeQuantum() { return timeQuantum; }
 	void setCurrentThread(Thread* t) { currentThread = t; }
 
 	/**
- 	 firstComeFirstServe:
-	 a simple scheduling algorithm
+ 	 run:
+	 runs the simulation using the following event functions
 	 */
 	void run();
-
 	void threadArrived(Event* e);
 	void dispatchInvoked(Event* e);
 	void processDispatchComplete(Event* e);

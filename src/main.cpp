@@ -223,7 +223,6 @@ int main(int argc, char** argv) {
 	bool t = false;
 	bool v = false;
 	int a = 0;
-	//char* file;
 
 	// get a command line flags
 	get_flag(argc, argv, &t, &v, &a);
@@ -245,11 +244,23 @@ int main(int argc, char** argv) {
 	threadOverhead = fileData.threadOverhead;
 	processOverhead = fileData.processOverhead;
 
-	// create an object for scheduling
-	fcfsSimulator fcfs(processes, threadOverhead, processOverhead, v, t);
+	// call the desired algorithm and run the simulation
+	if(a == 1) {
+		rrSimulator rr(processes, threadOverhead, processOverhead, v, t);
+		rr.run();
+	}
+	else if(a == 2) {
+		prioritySimulator p(processes, threadOverhead, processOverhead, v, t);
+		p.run();
+	}
+	else if(a == 3) {
+		//customSimulator c(processes, threadOverhead, processOverhead, v, t);
+		//c.run();
+	}
+	else {
+		fcfsSimulator fcfs(processes, threadOverhead, processOverhead, v, t);
+		fcfs.run();
 
-	// call a scheduling scheme
-	fcfs.run();
 
 	printf("\n\n\nEverything seemed to run okey doky!\n");
 	return EXIT_SUCCESS;

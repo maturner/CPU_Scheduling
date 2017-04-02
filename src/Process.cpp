@@ -4,6 +4,9 @@
  Process:
  constructor function to build a new process
  */
+Process::Process() {
+	// do nothing
+}
 Process::Process(int i, int p, std::vector<Thread*> th) {
 	processID = i;
 	priority = p;
@@ -11,11 +14,15 @@ Process::Process(int i, int p, std::vector<Thread*> th) {
 }
 
 /**
- Process:
- default constructor
+ ~Process:
+ desructor functions to free up memory
  */
-Process::Process() {
-	// do nothing
+Process::~Process() {
+
+	// delete each thread pointer
+	for(int i = 0; i < threads.size(); i++) {
+		delete threads[i];
+	}
 }
 
 /**

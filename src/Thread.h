@@ -23,6 +23,9 @@ private:
 	int ioTime;
 	int numIOBursts;
 	int numCPUBursts;
+
+	int lastPreempt;
+	int age;
 	
 	std::string threadState;
 	std::queue<Burst*> bursts;
@@ -33,15 +36,16 @@ public:
 
 	/**
 	 Thread:
-	 default constructor
+	 constructor functions to build a new thread
 	 */
 	Thread();
+	Thread(int i, int p, int t, std::string s, std::queue<Burst*> b, int st, int it);
 
 	/**
-	 Thread:
-	 constructor function to build a new thread
+	 ~Thread:
+	 desructor functions to free up memory
 	 */
-	Thread(int i, int p, int t, std::string s, std::queue<Burst*> b, int st, int it);
+	~Thread();
 
 	/**
 	 Thread:
@@ -64,6 +68,8 @@ public:
 	int getIOTime() { return ioTime; }
 	int getTurnaroundTime() { return endTime - arrivalTime; }
 	int getResponseTime() { return startTime - arrivalTime; }
+	int getLastPreempt() { return lastPreempt; }
+	int getAge() { return age; }
 	std::string getThreadState() { return threadState; }
 	std::queue<Burst*> getBursts() { return bursts; }
 
@@ -74,6 +80,8 @@ public:
 	void setStartTime(int t) { startTime = t; }
 	void setEndTime(int t) { endTime = t; }
 	void setThreadState(std::string s) { threadState = s; }
+	void setLastPreempt(int t) { lastPreempt = t; }
+	void setAge(int a) { age = a; }
 
 	/**
 	 addBurst:

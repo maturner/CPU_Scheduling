@@ -14,7 +14,8 @@ Thread::Thread() {
 	ioTime = -1;
 	threadState = "NO_THREAD";
 	bursts;
-
+	lastPreempt = -1;
+	age = -1;
 }
 
 /**
@@ -31,11 +32,12 @@ Thread::Thread(int i, int p, int t, std::string s, std::queue<Burst*> b, int st,
 	ioTime = it;
 	threadState = s;
 	bursts = b;
+	lastPreempt = -1;
+	age = -1;
 
 	// get the specific number of each burst
 	numIOBursts = bursts.size() / 2;
 	numCPUBursts = (bursts.size() / 2) + 1;
-
 }
 
 /**
@@ -52,6 +54,19 @@ Thread::Thread(const Thread &t) {
 	numCPUBursts = t.numCPUBursts;
 	threadState = t.threadState;
 	bursts = t.bursts;
+	lastPreempt = t.lastPreempt;
+	age = t.age;
+}
+
+/**
+ ~Thread:
+ desructor functions to free up memory
+ */
+Thread::~Thread() {
+
+	for(int i = 0; i < (int)bursts.size(); i++) {
+		delete bursts[i];
+	}
 }
 
 

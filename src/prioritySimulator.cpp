@@ -1,13 +1,13 @@
 #include <sstream>
 
-#include "fcfsSimulator.h"
+#include "prioritySimulator.h"
 
 /**
  fcfsSimulator:
  a constructor that allows the main proggram to make use of the following
  scheduling algorithms
  */
-fcfsSimulator::fcfsSimulator(std::vector<Process*> p, int to, int po, bool v, bool t) {
+prioritySimulator::prioritySimulator(std::vector<Process*> p, int to, int po, bool v, bool t) {
 
 	// initialize class variables
 	processes = p;
@@ -45,7 +45,7 @@ fcfsSimulator::fcfsSimulator(std::vector<Process*> p, int to, int po, bool v, bo
  firstComeFirstServe:
  a function to schedule the next process to run
  */
-void fcfsSimulator::run() {
+void prioritySimulatorr::run() {
 
 	while (!events.empty()) {
 		Event* event = events.top();
@@ -77,7 +77,7 @@ void fcfsSimulator::run() {
             }
 
             case EventTypes::THREAD_PREEMPTED: {
-            	// no preemption for first come first serve scheduling
+            	// no preemption for priority scheduling
                 break;
             }
 
@@ -112,7 +112,7 @@ void fcfsSimulator::run() {
  initially checks for thread in the cpu or if the dispatcher is active: if not, it adds the
  first dispatching event. also will add the thread to the ready queue.
  */
-void fcfsSimulator::threadArrived(Event* e) {
+void prioritySimulator::threadArrived(Event* e) {
 
 	// if no running thread and an inactive dispatcher -> essentially handles the start case
 	if(!cpuBusy && !dispatcherActive) {
@@ -127,9 +127,17 @@ void fcfsSimulator::threadArrived(Event* e) {
 		events.push(newEvent);
 	}
 
-	// push the thread onto the ready queue
+	// push the thread onto the appropriate ready queue
 	Thread* t = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()];
-	readyQueue.push(t);
+
+	if(processes[e->getProcessID()]->getProcessID() == 0)
+		readyQueue0.push(t);
+	else if(processes[e->getProcessID()]->getProcessID() == 1)
+		readyQueue1.push(t);
+	else if(processes[e->getProcessID()]->getProcessID() == 2)
+		readyQueue2.push(t);
+	else
+		readyQueue3.push(t);
 }
 
 /**
@@ -137,14 +145,22 @@ void fcfsSimulator::threadArrived(Event* e) {
  sets busy flag and determines whether the OS has to perform a full process switch or can 
  perfomr a simple thread switch.
  */
-void fcfsSimulator::dispatchInvoked(Event* e) {
+void prioritySimulator::dispatchInvoked(Event* e) {
 
 	// set the dispatcher flag to true
 	dispatcherActive = true;
 	pdt = e->getTime();
 
-	// look at the front of the ready queue
-	Thread* t = readyQueue.front();
+	// look at the front of the ready queue with the highest priority
+	Thread* t;
+	if(!readyQueue0.empty())
+		t = readyQueue0.front();
+	else if(!readyQueue1.empty()) 
+		t = readyQueue1.front();
+	else if(!readyQueue2.empty())
+		t = readyQueue2.front();
+	else
+		t = readyQueue3.front();
 
 	// if the new thread is not part of the same process:
 	if(t->getProcessID() != previousThread->getProcessID()) {
@@ -182,7 +198,7 @@ void fcfsSimulator::dispatchInvoked(Event* e) {
  sets flags accordingly. creates events based on if the thread will complete on this
  turn or needs to be blocked for an io request.
  */
-void fcfsSimulator::processDispatchComplete(Event* e) {
+void prioritySimulator::processDispatchComplete(Event* e) {
 
 	// if this is the process's first burst, set the start time
 	if(processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getStartTime() < 0)
@@ -195,8 +211,23 @@ void fcfsSimulator::processDispatchComplete(Event* e) {
 	// indicate that the cpu is busy
 	cpuBusy = true;
 
-	// get the current thread
-	currentThread = readyQueue.front(); readyQueue.pop();
+	// get the current thread from the appropriate queue
+	if(!readyQueue0.empty()) {
+		currentThread = readyQueue0.front(); 
+		readyQueue0.pop();
+	}
+	else if(!readyQueue1.empty()) {
+		currentThread = readyQueue1.front(); 
+		readyQueue1.pop();
+	}
+	else if(!readyQueue2.empty()) {
+		currentThread = readyQueue2.front();
+		readyQueue2.pop();
+	}
+	else {
+		currentThread = readyQueue3.front();
+		readyQueue3.pop();
+	}
 
 	// get the next cpu burst time
 	int runTime = currentThread->getBursts().front()->getBurstLength();
@@ -234,7 +265,7 @@ void fcfsSimulator::processDispatchComplete(Event* e) {
  sets flags accordingly. creates events based on if the thread will complete on this
  turn or needs to be blocked for an io request.
  */
-void fcfsSimulator::threadDispatchComplete(Event* e){
+void prioritySimulator::threadDispatchComplete(Event* e){
 
 	// if this is the process's first burst, set the start time
 	if(processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getStartTime() < 0)
@@ -247,8 +278,23 @@ void fcfsSimulator::threadDispatchComplete(Event* e){
 	// indicate that the cpu is busy
 	cpuBusy = true;
 
-	// get the current thread
-	currentThread = readyQueue.front(); readyQueue.pop();
+	// get the current thread from the appropriate queue
+	if(!readyQueue0.empty()) {
+		currentThread = readyQueue0.front(); 
+		readyQueue0.pop();
+	}
+	else if(!readyQueue1.empty()) {
+		currentThread = readyQueue1.front(); 
+		readyQueue1.pop();
+	}
+	else if(!readyQueue2.empty()) {
+		currentThread = readyQueue2.front();
+		readyQueue2.pop();
+	}
+	else {
+		currentThread = readyQueue3.front();
+		readyQueue3.pop();
+	}
 
 	// get the next cpu burst time
 	int runTime = currentThread->getBursts().front()->getBurstLength();
@@ -278,9 +324,7 @@ void fcfsSimulator::threadDispatchComplete(Event* e){
 									e->getPriority(),
 									"Transitioned from RUNNING to EXIT");
 		events.push(newEvent);
-
 	}
-
 }
 
 /**
@@ -288,9 +332,10 @@ void fcfsSimulator::threadDispatchComplete(Event* e){
  only is called if more IO events exist, so it will create an event for when this is completed. also
  begins dispatch of the next thread in the ready queue.
  */
-void fcfsSimulator::cpuBurstCompleted(Event* e) {
+void prioritySimulator::cpuBurstCompleted(Event* e) {
 
-	// set the previous thread to what was the current thread
+	// remove the burst from the thread queue and set the previous thread to what was the current thread
+	currentThread->removeBurst();
 	previousThread = currentThread;
 
 	// set cpu to not busy and get updated time
@@ -298,7 +343,6 @@ void fcfsSimulator::cpuBurstCompleted(Event* e) {
 
 	// get the io burst time
 	int ioTime = currentThread->getBursts().front()->getBurstLength();
-	currentThread->removeBurst();
 
 	// indicate when the process dispatch will be complete
 	Event* newEvent1 = new Event(EventTypes::IO_BURST_COMPLETED,
@@ -309,14 +353,19 @@ void fcfsSimulator::cpuBurstCompleted(Event* e) {
 								"Transitioned from BLOCKED to READY");
 	events.push(newEvent1);
 
-	// get the next process in the ready queue
-	Thread* t = readyQueue.front();
+	// look at the front of the ready queue with the highest priority
+	//**********NOT ACTUALLY SURE IF I NEED THIS OR NOT, COME BACK TO LATER*************
+	Thread* t;
+	if(!readyQueue0.empty()) t = readyQueue0.front();
+	else if(!readyQueue1.empty()) t = readyQueue1.front();
+	else if(!readyQueue2.empty()) t = readyQueue2.front();
+	else t = readyQueue3.front();
 
-	// invoke the dispatcher if there are still threads in the ready queue
-	if(readyQueue.size() > 0) {
+	// invoke the dispatcher if there are still threads in any of the ready queues
+	if(readyQueue0.size() > 0 || readyQueue1.size() > 0 || readyQueue2.size() > 0 || readyQueue3.size() > 0) {
 
 		// build message
-		int size = readyQueue.size();
+		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();;
 		std::stringstream ss;
 		ss << "Selected from " << size << " threads; will run to completion of burst";
 		std::string message = ss.str();
@@ -336,19 +385,25 @@ void fcfsSimulator::cpuBurstCompleted(Event* e) {
 
 /**
  ioBurstCompleted:
- push the process back onto the ready queue and invoke the dispatcher if not already busy
+ push the process back onto the appropriate ready queue and invoke the dispatcher if not already busy
  */
-void fcfsSimulator::ioBurstCompleted(Event* e) {
+void prioritySimulator::ioBurstCompleted(Event* e) {
 
 	// push the thread back onto the queue
 	Thread* t = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()];
-	readyQueue.push(t);
+	int priority = processes[e->getProcessID()]->getPriority();
+
+	// push the thread back onto the appropriate ready queue
+	if(priority == 0) readyQueue0.push(t);
+	else if(priority== 1) readyQueue1.push(t);
+	else if(priority == 2) readyQueue2.push(t);
+	else readyQueue3.push(t);
 
 	// if no thread is currently running on the cpu and the dispatcher is not already active
 	if(!cpuBusy && !dispatcherActive) {
 
 		// build message
-		int size = readyQueue.size();
+		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();
 		std::stringstream ss;
 		ss << "Selected from " << size << " threads; will run to completion of burst";
 		std::string message = ss.str();
@@ -369,7 +424,7 @@ void fcfsSimulator::ioBurstCompleted(Event* e) {
  upon completion of a thread, the dispatcher is once again invoked only if there
  are more threads waiting in the ready queue.
  */
-void fcfsSimulator::threadComplete(Event* e) {
+void prioritySimulator::threadComplete(Event* e) {
 
 	// reset current and previous threads
 	previousThread = currentThread;
@@ -378,14 +433,22 @@ void fcfsSimulator::threadComplete(Event* e) {
 	// capture the current end time
 	processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->setEndTime(e->getTime());
 
-	// continue dispatching events if the ready queue has them
-	if(!readyQueue.empty()) {
+	// continue dispatching events if any of the ready queues have them
+	if(readyQueue0.size() > 0 || readyQueue1.size() > 0 || readyQueue2.size() > 0 || readyQueue3.size() > 0) {
 
-		// look at the front of the ready queue
-		Thread* t = readyQueue.front();
+		// look at the front of the appropriate ready queue
+		Thread* t;
+		if(!readyQueue0.empty())
+			t = readyQueue0.front();
+		else if(!readyQueue1.empty()) 
+			t = readyQueue1.front();
+		else if(!readyQueue2.empty())
+			t = readyQueue2.front();
+		else
+			t = readyQueue3.front();
 
 		// build message
-		int size = readyQueue.size();
+		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();;
 		std::stringstream ss;
 		ss << "Selected from " << size << " threads; will run to completion of burst";
 		std::string message = ss.str();
@@ -401,14 +464,13 @@ void fcfsSimulator::threadComplete(Event* e) {
 
 	// otherwise, the simulation is over so get the final end time
 	else endTime = e->getTime();
-
 }
 
 /**
  calculateMetrics:
  calculates scheduling statistics based on results of the simulation
  */
-void fcfsSimulator::calculateMetrics() {
+void prioritySimulator::calculateMetrics() {
 
 	// calculate total service time andIO time
 	for(int i = 0; i < (int)processes.size(); i++) {
@@ -437,7 +499,7 @@ void fcfsSimulator::calculateMetrics() {
  displayInfo:
  prints out the information regarding each process
  */
-void fcfsSimulator::displayInfo() {
+void prioritySimulator::displayInfo() {
 
 	int sys_threads = 0;  float sys_rt = 0;  float sys_trt = 0;
 	int int_threads = 0;  float int_rt = 0;  float int_trt = 0;
@@ -559,7 +621,7 @@ void fcfsSimulator::displayInfo() {
  displayProcessInfo:
  prints out the information regarding each process
  */
-void fcfsSimulator::displayProcessInfo() {
+void prioritySimulator::displayProcessInfo() {
 
 	printf("\nProcess Info:\n");
 	for(unsigned int i = 0; i < processes.size(); i++) {
