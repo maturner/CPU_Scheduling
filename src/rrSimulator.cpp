@@ -51,7 +51,7 @@ void rrSimulator::run() {
 		events.pop();
 
 		// if verbose option chosen, display the current event
-		if(verbose) ; event->toString();
+		if(verbose) event->toString();
 
 		// update the event queue based on the current event
         switch(event->getType()){
@@ -122,7 +122,7 @@ void rrSimulator::threadArrived(Event* e) {
 									e->getProcessID(),
 									e->getThreadID(),
 									e->getPriority(),
-									"Selected from 1 threads; will run to completion of burst or end of time quantum");
+									"Selected from 1 threads; will run at most 3 ticks");
 		events.push(newEvent);
 	}
 
@@ -203,9 +203,6 @@ void rrSimulator::processDispatchComplete(Event* e) {
 	// check to see if the thread will be need to be preempted
 	if (runTime > timeQuantum) {
 
-		//printf("\nThis should print if the thread needs to be preempted");
-		//printf("\nThe expected service time is %d where as the time quantum is %d.\n", currentThread->getServiceTime(), timeQuantum);
-
 		// decrement the burst length by the set amount
 		currentThread->getBursts().front()->decrement(timeQuantum);
 
@@ -227,8 +224,6 @@ void rrSimulator::processDispatchComplete(Event* e) {
 
 		// if this is not the last burst but it runs to completion:
 		if(!currentThread->getBursts().empty()) {
-			
-			//printf("\nThis should print if the thread has a cpu burst that will start running.\n");
 
 			// indicate when the process dispatch will be complete
 			Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
@@ -242,8 +237,6 @@ void rrSimulator::processDispatchComplete(Event* e) {
 
 		// otherwise:
 		else {
-
-			//printf("\nThis should print if the thread will be completed after this cpu burst.\n");
 
 			// creat the exit event
 			Event* newEvent = new Event(EventTypes::THREAD_COMPLETED,
@@ -282,17 +275,8 @@ void rrSimulator::threadDispatchComplete(Event* e){
 	// get the next cpu burst time
 	int runTime = currentThread->getBursts().front()->getBurstLength();
 
-	int cb = ((currentThread->getBursts().size()) / 2) + 1;
-	int ib = ((currentThread->getBursts().size()) / 2);
-
-	//printf("\nP%dT%d has %d cpu bursts and %d io bursts remaining", currentThread->getProcessID(), currentThread->getThreadID(), cb, ib);
-	//printf("\n\tthe next cpu burst has %d time remaining (time quantum is %d)\n", runTime, timeQuantum);
-
 	// check to see if the thread will be need to be preempted
 	if (runTime > timeQuantum) {
-
-		//printf("\nThis should print if the thread needs to be preempted");
-		//printf("\nThe expected service time is %d where as the time quantum is %d.\n", currentThread->getServiceTime(), timeQuantum);
 
 		// decrement the burst length by the set amount
 		currentThread->getBursts().front()->decrement(timeQuantum);
@@ -315,8 +299,6 @@ void rrSimulator::threadDispatchComplete(Event* e){
 
 		// if this is not the last burst but it runs to completion:
 		if(!currentThread->getBursts().empty()) {
-			
-			//printf("\nThis should print if the thread has a cpu burst that will start running.\n");
 
 			// indicate when the process dispatch will be complete
 			Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
@@ -330,8 +312,6 @@ void rrSimulator::threadDispatchComplete(Event* e){
 
 		// otherwise:
 		else {
-
-			//printf("\nThis should print if the thread will be completed after this cpu burst.\n");
 
 			// creat the exit event
 			Event* newEvent = new Event(EventTypes::THREAD_COMPLETED,
@@ -370,10 +350,8 @@ void rrSimulator::threadPreempted (Event* e) {
 	// build message
 	int size = readyQueue.size();
 	std::stringstream ss;
-	ss << "Selected from " << size << " threads; will run to completion of burst or end of time quantum";
+	ss << "Selected from " << size << " threads; will run at most 3 ticks";
 	std::string message = ss.str();
-
-	//printf("\nThis is inside the threadPreempted function so the new event should be pushed.\n");
 
 	// invoke the dispatcher
 	Event* newEvent = new Event(EventTypes::DISPATCHER_INVOKED,
@@ -453,7 +431,7 @@ void rrSimulator::ioBurstCompleted(Event* e) {
 		// build message
 		int size = readyQueue.size();
 		std::stringstream ss;
-		ss << "Selected from " << size << " threads; will run to completion of burst or end of time quantum";
+		ss << "Selected from " << size << " threads; will run at most 3 ticks";
 		std::string message = ss.str();
 
 		// dispatch the event
@@ -490,7 +468,7 @@ void rrSimulator::threadComplete(Event* e) {
 		// build message
 		int size = readyQueue.size();
 		std::stringstream ss;
-		ss << "Selected from " << size << " threads; will run to completion of burstor end of time quantum";
+		ss << "Selected from " << size << " threads; will run at most 3 ticks";
 		std::string message = ss.str();
 
 		Event* newEvent = new Event(EventTypes::DISPATCHER_INVOKED,

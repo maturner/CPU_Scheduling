@@ -48,6 +48,7 @@ prioritySimulator::prioritySimulator(std::vector<Process*> p, int to, int po, bo
 void prioritySimulator::run() {
 
 	while (!events.empty()) {
+
 		Event* event = events.top();
 		events.pop();
 
@@ -130,11 +131,11 @@ void prioritySimulator::threadArrived(Event* e) {
 	// push the thread onto the appropriate ready queue
 	Thread* t = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()];
 
-	if(processes[e->getProcessID()]->getProcessID() == 0)
+	if(processes[t->getProcessID()]->getPriority() == 0)
 		readyQueue0.push(t);
-	else if(processes[e->getProcessID()]->getProcessID() == 1)
+	else if(processes[t->getProcessID()]->getPriority() == 1)
 		readyQueue1.push(t);
-	else if(processes[e->getProcessID()]->getProcessID() == 2)
+	else if(processes[t->getProcessID()]->getPriority() == 2)
 		readyQueue2.push(t);
 	else
 		readyQueue3.push(t);
@@ -211,16 +212,16 @@ void prioritySimulator::processDispatchComplete(Event* e) {
 	// indicate that the cpu is busy
 	cpuBusy = true;
 
-	// get the current thread from the appropriate queue
-	if(!readyQueue0.empty()) {
+	// get the current dispatched thread from the appropriate queue
+	if(processes[e->getProcessID()]->getPriority() == 0) {
 		currentThread = readyQueue0.front(); 
 		readyQueue0.pop();
 	}
-	else if(!readyQueue1.empty()) {
+	else if(processes[e->getProcessID()]->getPriority() == 1) {
 		currentThread = readyQueue1.front(); 
 		readyQueue1.pop();
 	}
-	else if(!readyQueue2.empty()) {
+	else if(processes[e->getProcessID()]->getPriority() == 2) {
 		currentThread = readyQueue2.front();
 		readyQueue2.pop();
 	}
@@ -278,16 +279,16 @@ void prioritySimulator::threadDispatchComplete(Event* e){
 	// indicate that the cpu is busy
 	cpuBusy = true;
 
-	// get the current thread from the appropriate queue
-	if(!readyQueue0.empty()) {
+	// get the current dipatched thread from the appropriate queue
+	if(processes[e->getProcessID()]->getPriority() == 0) {
 		currentThread = readyQueue0.front(); 
 		readyQueue0.pop();
 	}
-	else if(!readyQueue1.empty()) {
+	else if(processes[e->getProcessID()]->getPriority() == 1) {
 		currentThread = readyQueue1.front(); 
 		readyQueue1.pop();
 	}
-	else if(!readyQueue2.empty()) {
+	else if(processes[e->getProcessID()]->getPriority() == 2) {
 		currentThread = readyQueue2.front();
 		readyQueue2.pop();
 	}
@@ -354,7 +355,6 @@ void prioritySimulator::cpuBurstCompleted(Event* e) {
 	events.push(newEvent1);
 
 	// look at the front of the ready queue with the highest priority
-	//**********NOT ACTUALLY SURE IF I NEED THIS OR NOT, COME BACK TO LATER*************
 	Thread* t;
 	if(!readyQueue0.empty()) t = readyQueue0.front();
 	else if(!readyQueue1.empty()) t = readyQueue1.front();
@@ -365,9 +365,15 @@ void prioritySimulator::cpuBurstCompleted(Event* e) {
 	if(readyQueue0.size() > 0 || readyQueue1.size() > 0 || readyQueue2.size() > 0 || readyQueue3.size() > 0) {
 
 		// build message
-		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();;
+		int q;
+		if(!readyQueue0.empty()) q = 0;
+		else if(!readyQueue1.empty()) q = 1;
+		else if(!readyQueue2.empty()) q = 2;
+		else q = 3;
+
 		std::stringstream ss;
-		ss << "Selected from " << size << " threads; will run to completion of burst";
+		ss << "Selected from queue " << q << " [S:" << readyQueue0.size() << " I:" << readyQueue1.size() 
+		   << " N:" << readyQueue2.size() << " B:" << readyQueue3.size() << "]";
 		std::string message = ss.str();
 
 		Event* newEvent2 = new Event(EventTypes::DISPATCHER_INVOKED,
