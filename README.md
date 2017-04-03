@@ -32,6 +32,8 @@ I. List of Files:
 
 	7. simulator: the executable cpp file built from the 'make' command
 
+	8. simulator_example: the given binary from the course website, used to compare against
+
 II. Unusual/Interesting Features:
 	Honestly, I'm just happy the thing works right now
 

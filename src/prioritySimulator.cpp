@@ -444,14 +444,10 @@ void prioritySimulator::threadComplete(Event* e) {
 
 		// look at the front of the appropriate ready queue
 		Thread* t;
-		if(!readyQueue0.empty())
-			t = readyQueue0.front();
-		else if(!readyQueue1.empty()) 
-			t = readyQueue1.front();
-		else if(!readyQueue2.empty())
-			t = readyQueue2.front();
-		else
-			t = readyQueue3.front();
+		if(!readyQueue0.empty()) t = readyQueue0.front();
+		else if(!readyQueue1.empty()) t = readyQueue1.front();
+		else if(!readyQueue2.empty()) t = readyQueue2.front();
+		else t = readyQueue3.front();
 
 		// build message
 		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();;

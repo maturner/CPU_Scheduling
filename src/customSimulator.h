@@ -33,7 +33,7 @@ private:
 	int totalIOTime = 0;
 	int dispatchTime = 0;
 	int idleTime = 0;
-	int timeQuantum = 8;
+	int timeQuantum = 3;
 
 	float cpuUtilization = 0.0;
 	float cpuEfficiency = 0.0;

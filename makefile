@@ -25,7 +25,7 @@ $(NAME): $(OBJS)
 
 # Build and run the program.
 run: $(NAME)
-	./$(NAME) -a PRIORITY input.txt
+	./$(NAME) input.txt
 
 # Remove all generated files.
 clean:

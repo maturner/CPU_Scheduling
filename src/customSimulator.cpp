@@ -50,11 +50,23 @@ customSimulator::customSimulator(std::vector<Process*> p, int to, int po, bool v
 void customSimulator::run() {
 
 	while (!events.empty()) {
+
+		//**************************************************************************************************
+		//printf("\n\n*************************************");
+		//printf("\nCurrent Thread is P%dT%d", currentThread->getProcessID(), currentThread->getThreadID());
+		//printf("\nQueue Sizes before event:");
+		//printf("\n\tQueue 0: %d", readyQueue0.size());
+		//printf("\n\tQueue 1: %d", readyQueue1.size());
+		//printf("\n\tQueue 2: %d", readyQueue2.size());
+		//printf("\n\tQueue 3: %d\n", readyQueue3.size());
+		//printf("*************************************");
+		//**************************************************************************************************
+
 		Event* event = events.top();
 		events.pop();
 
 		// if verbose option chosen, display the current event
-		if(verbose) event->toString();
+		if(verbose) ; event->toString();
 
 		// update the event queue based on the current event
         switch(event->getType()){
@@ -101,7 +113,7 @@ void customSimulator::run() {
 	}
 
 	// if perThread option picked, display:
-	if(perThread) displayProcessInfo();
+	if(perThread) ; displayProcessInfo();
 
 	printf("\nSIMULATION COMPLETED!\n");
 
@@ -125,21 +137,22 @@ void customSimulator::threadArrived(Event* e) {
 									e->getProcessID(),
 									e->getThreadID(),
 									e->getPriority(),
-									"Selected from 1 threads; will run to completion of burst");
+									"Selected from 1 threads; will run at most  10 ticks");
 		events.push(newEvent);
 	}
 
 	// push the thread onto the appropriate ready queue
 	Thread* t = processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()];
 	
-	if(processes[e->getProcessID()]->getProcessID() == 0)
+	if(processes[e->getProcessID()]->getPriority() == 0)
 		readyQueue0.push(t);
-	else if(processes[e->getProcessID()]->getProcessID() == 1)
+	else if(processes[e->getProcessID()]->getPriority() == 1)
 		readyQueue1.push(t);
-	else if(processes[e->getProcessID()]->getProcessID() == 2)
+	else if(processes[e->getProcessID()]->getPriority() == 2)
 		readyQueue2.push(t);
-	else
+	else if(processes[e->getProcessID()]->getPriority() == 3)
 		readyQueue3.push(t);
+	else ;
 
 }
 
@@ -165,23 +178,10 @@ void customSimulator::dispatchInvoked(Event* e) {
 	else
 		t = readyQueue3.front();
 
-	// if the new thread is part of the same process:
-	if(t->getProcessID() == previousThread->getProcessID()) {
+	// if the new thread is not part of the same process:
+	if(t->getProcessID() != previousThread->getProcessID()) {
 		
 		// call OS overhead to switch between processes
-		Event* newEvent = new Event(EventTypes::THREAD_DISPATCH_COMPLETED,
-									e->getTime() + threadOverhead,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from READY to RUNNING");
-		events.push(newEvent);
-	}
-
-	// otherwise, they are different processes:
-	else {
-
-		// call OS overhead to switch between threads of the same process
 		Event* newEvent = new Event(EventTypes::PROCESS_DISPATCH_COMPLETED,
 									e->getTime() + processOverhead,
 									e->getProcessID(),
@@ -193,6 +193,19 @@ void customSimulator::dispatchInvoked(Event* e) {
 		// if this is the process's first burst, set the start time
 		if(processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->getStartTime() < 0)
 			processes[e->getProcessID()]->getProcessThreads()[e->getThreadID()]->setStartTime(e->getTime() + processOverhead);
+	}
+
+	// otherwise, they belong to the same process:
+	else {
+
+		// call OS overhead to switch between threads of the same process
+		Event* newEvent = new Event(EventTypes::THREAD_DISPATCH_COMPLETED,
+									e->getTime() + threadOverhead,
+									e->getProcessID(),
+									e->getThreadID(),
+									e->getPriority(),
+									"Transitioned from READY to RUNNING");
+		events.push(newEvent);
 	}
 }
 
@@ -214,16 +227,16 @@ void customSimulator::processDispatchComplete(Event* e) {
 	// indicate that the cpu is busy
 	cpuBusy = true;
 
-	// get the current thread from the appropriate queue
-	if(!readyQueue0.empty()) {
+	// get the current dispatched thread from the appropriate queue
+	if(processes[e->getProcessID()]->getPriority() == 0) {
 		currentThread = readyQueue0.front(); 
 		readyQueue0.pop();
 	}
-	else if(!readyQueue1.empty()) {
+	else if(processes[e->getProcessID()]->getPriority() == 1) {
 		currentThread = readyQueue1.front(); 
 		readyQueue1.pop();
 	}
-	else if(!readyQueue2.empty()) {
+	else if(processes[e->getProcessID()]->getPriority() == 2) {
 		currentThread = readyQueue2.front();
 		readyQueue2.pop();
 	}
@@ -234,44 +247,60 @@ void customSimulator::processDispatchComplete(Event* e) {
 
 	// get the next cpu burst time
 	int runTime = currentThread->getBursts().front()->getBurstLength();
-	currentThread->removeBurst();
 
-		// check to see if the thread will be need to be preempted
-	if (currentThread->getServiceTime() > timeQuantum) {
+	// check to see if the thread will be need to be preempted
+	if (runTime > timeQuantum) {
 
-		// if so, indicate when the thread will need to be prempted
+		// decrement the burst length by the set amount
+		currentThread->getBursts().front()->decrement(timeQuantum);
+		
+		// build a message
+		std::stringstream ss;
+		ss << "Transitioned from RUNNING to READY; returned to queue " << processes[currentThread->getProcessID()]->getPriority();
+		std::string message = ss.str();
+		
+		// indicate when the thread will need to be prempted
 		Event* newEvent = new Event(EventTypes::THREAD_PREEMPTED,
 									e->getTime() + timeQuantum,
 									e->getProcessID(),
 									e->getThreadID(),
 									e->getPriority(),
-									"Transitioned from RUNNING to READY");
-	}
-
-	// if this is not the last burst:
-	else if(!currentThread->getBursts().empty()) {
-	
-		// indicate when the process dispatch will be complete
-		Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
-									e->getTime() + runTime,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from RUNNING to BLOCKED");
+									message);
 		events.push(newEvent);
 	}
 
-	// otherwise:
+	// if not:
 	else {
+		
+		// remove the burst from the thread's burst queue
+		currentThread->removeBurst();
 
-		// creat the exit event
-		Event* newEvent = new Event(EventTypes::THREAD_COMPLETED,
-									e->getTime() + runTime,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from RUNNING to EXIT");
-		events.push(newEvent);
+		// if this is not the last burst but it runs to completion:
+		if(!currentThread->getBursts().empty()) {
+
+			// indicate when the process dispatch will be complete
+			Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
+										e->getTime() + runTime,
+										e->getProcessID(),
+										e->getThreadID(),
+										e->getPriority(),
+										"Transitioned from RUNNING to BLOCKED");
+			events.push(newEvent);
+		}
+
+		// otherwise:
+		else {
+
+			// creat the exit event
+			Event* newEvent = new Event(EventTypes::THREAD_COMPLETED,
+										e->getTime() + runTime,
+										e->getProcessID(),
+										e->getThreadID(),
+										e->getPriority(),
+										"Transitioned from RUNNING to EXIT");
+			events.push(newEvent);
+
+		}
 	}
 }
 
@@ -293,16 +322,16 @@ void customSimulator::threadDispatchComplete(Event* e){
 	// indicate that the cpu is busy
 	cpuBusy = true;
 
-	// get the current thread from the appropriate queue
-	if(!readyQueue0.empty()) {
+	// get the current dipatched thread from the appropriate queue
+	if(processes[e->getProcessID()]->getPriority() == 0) {
 		currentThread = readyQueue0.front(); 
 		readyQueue0.pop();
 	}
-	else if(!readyQueue1.empty()) {
+	else if(processes[e->getProcessID()]->getPriority() == 1) {
 		currentThread = readyQueue1.front(); 
 		readyQueue1.pop();
 	}
-	else if(!readyQueue2.empty()) {
+	else if(processes[e->getProcessID()]->getPriority() == 2) {
 		currentThread = readyQueue2.front();
 		readyQueue2.pop();
 	}
@@ -313,10 +342,17 @@ void customSimulator::threadDispatchComplete(Event* e){
 
 	// get the next cpu burst time
 	int runTime = currentThread->getBursts().front()->getBurstLength();
-	currentThread->removeBurst();
 
 	// check to see if the thread will be need to be preempted
-	if (currentThread->getServiceTime() > timeQuantum) {
+	if (runTime > timeQuantum) {
+		
+		// decrement the burst length by the set amount
+		currentThread->getBursts().front()->decrement(timeQuantum);
+
+		// build a message
+		std::stringstream ss;
+		ss << "Transitioned from RUNNING to READY; returned to queue " << processes[currentThread->getProcessID()]->getPriority();
+		std::string message = ss.str();
 
 		// if so, indicate when the thread will need to be prempted
 		Event* newEvent = new Event(EventTypes::THREAD_PREEMPTED,
@@ -324,34 +360,42 @@ void customSimulator::threadDispatchComplete(Event* e){
 									e->getProcessID(),
 									e->getThreadID(),
 									e->getPriority(),
-									"Transitioned from RUNNING to READY");
-	}
-
-	// if this is not the last burst:
-	else if(!currentThread->getBursts().empty()) {
-	
-		// indicate when the process dispatch will be complete
-		Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
-									e->getTime() + runTime,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from RUNNING to BLOCKED");
+									message);
 		events.push(newEvent);
 	}
 
-	// otherwise:
+	// if not:
 	else {
+		
+		// remove the burst from the thread's burst queue
+		currentThread->removeBurst();
 
-		// creat the exit event
-		Event* newEvent = new Event(EventTypes::THREAD_COMPLETED,
-									e->getTime() + runTime,
-									e->getProcessID(),
-									e->getThreadID(),
-									e->getPriority(),
-									"Transitioned from RUNNING to EXIT");
-		events.push(newEvent);
+		// if this is not the last burst but it runs to completion:
+		if(!currentThread->getBursts().empty()) {
 
+			// indicate when the process dispatch will be complete
+			Event* newEvent = new Event(EventTypes::CPU_BURST_COMPLETED,
+										e->getTime() + runTime,
+										e->getProcessID(),
+										e->getThreadID(),
+										e->getPriority(),
+										"Transitioned from RUNNING to BLOCKED");
+			events.push(newEvent);
+		}
+
+		// otherwise:
+		else {
+
+			// creat the exit event
+			Event* newEvent = new Event(EventTypes::THREAD_COMPLETED,
+										e->getTime() + runTime,
+										e->getProcessID(),
+										e->getThreadID(),
+										e->getPriority(),
+										"Transitioned from RUNNING to EXIT");
+			events.push(newEvent);
+
+		}
 	}
 
 }
@@ -372,7 +416,8 @@ void customSimulator::threadPreempted (Event* e) {
 	else if(processes[currentThread->getProcessID()]->getPriority() == 2) readyQueue2.push(currentThread);
 	else readyQueue3.push(currentThread);
 	
-	// set the current thread to the null thread
+	// set the previous thread to the current thread and the current thread to nothing
+	previousThread = currentThread;
 	currentThread = nullThread;
 
 	// get ready to dispatch the next thread in the highest priority ready queue
@@ -380,12 +425,13 @@ void customSimulator::threadPreempted (Event* e) {
 	if(!readyQueue0.empty()) t = readyQueue0.front(); 
 	else if(!readyQueue1.empty()) t = readyQueue1.front();
 	else if(!readyQueue2.empty()) t = readyQueue2.front();
-	else t = readyQueue3.front();
+	else if(!readyQueue3.empty()) t = readyQueue3.front();
+	else ;
 
 	// build message
 	int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();
 	std::stringstream ss;
-	ss << "Selected from " << size << " threads; will run to completion of burst";
+	ss << "Selected from " << size << " threads; will run for at most 10 ticks";
 	std::string message = ss.str();
 
 	// invoke the dispatcher
@@ -426,7 +472,6 @@ void customSimulator::cpuBurstCompleted(Event* e) {
 	events.push(newEvent1);
 
 	// look at the front of the ready queue with the highest priority
-	//**********NOT ACTUALLY SURE IF I NEED THIS OR NOT, COME BACK TO LATER*************
 	Thread* t;
 	if(!readyQueue0.empty()) t = readyQueue0.front();
 	else if(!readyQueue1.empty()) t = readyQueue1.front();
@@ -437,9 +482,15 @@ void customSimulator::cpuBurstCompleted(Event* e) {
 	if(readyQueue0.size() > 0 || readyQueue1.size() > 0 || readyQueue2.size() > 0 || readyQueue3.size() > 0) {
 
 		// build message
-		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();;
+		int q;
+		if(!readyQueue0.empty()) q = 0;
+		else if(!readyQueue1.empty()) q = 1;
+		else if(!readyQueue2.empty()) q = 2;
+		else q = 3;
+
 		std::stringstream ss;
-		ss << "Selected from " << size << " threads; will run to completion of burst";
+		ss << "Selected from queue " << q << " [S:" << readyQueue0.size() << " I:" << readyQueue1.size() 
+		   << " N:" << readyQueue2.size() << " B:" << readyQueue3.size() << "]";
 		std::string message = ss.str();
 
 		Event* newEvent2 = new Event(EventTypes::DISPATCHER_INVOKED,
@@ -477,7 +528,7 @@ void customSimulator::ioBurstCompleted(Event* e) {
 		// build message
 		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();
 		std::stringstream ss;
-		ss << "Selected from " << size << " threads; will run to completion of burst";
+		ss << "Selected from " << size << " threads; will run at most 10 ticks";
 		std::string message = ss.str();
 
 		// dispatch the event
@@ -518,7 +569,7 @@ void customSimulator::threadComplete(Event* e) {
 		// build message
 		int size = readyQueue0.size() + readyQueue1.size() + readyQueue2.size() + readyQueue3.size();
 		std::stringstream ss;
-		ss << "Selected from " << size << " threads; will run to completion of burst";
+		ss << "Selected from " << size << " threads; will run at most 10 ticks";
 		std::string message = ss.str();
 
 		Event* newEvent = new Event(EventTypes::DISPATCHER_INVOKED,
