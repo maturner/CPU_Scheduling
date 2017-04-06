@@ -51,22 +51,11 @@ void customSimulator::run() {
 
 	while (!events.empty()) {
 
-		//**************************************************************************************************
-		//printf("\n\n*************************************");
-		//printf("\nCurrent Thread is P%dT%d", currentThread->getProcessID(), currentThread->getThreadID());
-		//printf("\nQueue Sizes before event:");
-		//printf("\n\tQueue 0: %d", readyQueue0.size());
-		//printf("\n\tQueue 1: %d", readyQueue1.size());
-		//printf("\n\tQueue 2: %d", readyQueue2.size());
-		//printf("\n\tQueue 3: %d\n", readyQueue3.size());
-		//printf("*************************************");
-		//**************************************************************************************************
-
 		Event* event = events.top();
 		events.pop();
 
 		// if verbose option chosen, display the current event
-		if(verbose) ; event->toString();
+		if(verbose) event->toString();
 
 		// update the event queue based on the current event
         switch(event->getType()){
@@ -113,7 +102,7 @@ void customSimulator::run() {
 	}
 
 	// if perThread option picked, display:
-	if(perThread) ; displayProcessInfo();
+	if(perThread) displayProcessInfo();
 
 	printf("\nSIMULATION COMPLETED!\n");
 
@@ -167,8 +156,11 @@ void customSimulator::dispatchInvoked(Event* e) {
 	dispatcherActive = true;
 	pdt = e->getTime();
 
-	// look at the front of the ready queue with the highest priority
+	// look at the what process the previous thread belonged to
+	int p = previousThread->getProcessID();
 	Thread* t;
+		
+	// look at the front of the ready queue with the highest priority
 	if(!readyQueue0.empty())
 		t = readyQueue0.front();
 	else if(!readyQueue1.empty()) 

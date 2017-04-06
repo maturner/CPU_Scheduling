@@ -35,15 +35,19 @@ I. List of Files:
 	8. simulator_example: the given binary from the course website, used to compare against
 
 II. Unusual/Interesting Features:
-	Honestly, I'm just happy the thing works right now
+	Nothing to report
 
 III. Approximate Time Spent:
 	Deliverable 1: 6-7 hours
 	Deliverable 2: 15-16 hours
-	Deliverable 3 (final): unknown as of current
+	Deliverable 3 (final): 5-6 hours
 
 IV: Custom Scheduler Explanation:
 	
 	The custom scheduler settled on is simple combination of the Round Robin Scheduler and the Priority scheduler with a few additions.  Threads will be preempted if run past an alotted time period.  This time quantum is longer than the one specified in the RR simulation (specifically, it is set to 8) to allow more threads to run to completion of a CPU burst.  This is intended as a better balance of time, prevent threads from occupying too much CPU time but also allowing them time adequate time to complete and move to a BLOCKED or EXIT state.
 
-	When it comes time to preempt a thread or move it to an event queue, the dispatcher will look for a thread from the same process to run next. This way, context switch time is minimized since it is attempting to only perform a thread switch instead of an entire process (as the overhead required for switching between threads is much less than the overhead required for switching between processes).  It starts by looking in the ready queue associated with the current thread.  If no more threads of that process are found, it will move to the highest priority queue with a READY thread.
+	When it comes time to preempt a thread or move it to an event queue, the dispatcher will look for a thread from the same process to run next. This way, context switch time is minimized since it is attempting to only perform a thread switch instead of an entire process (as the overhead required for switching between threads is much less than the overhead required for switching between processes).  It starts by looking in the ready queue associated with the previous thread (as the dispatch is called immediately after the process is moved out of the running state).  If no more threads of that process are found, it will move to the highest priority queue with a READY thread.  The queues used are the same as the PRIORITY simulation and once a thread is assigned, it cannot move from one queue to another.  In other words, there is no promoting or demoting threads.
+
+	This unfortunately does not eliminate the possibility of starvation, since no ageing mechanism is in place.  A process with many short bursts (under 8 ticks, both CPU and IO) could feasibly occupy the CPU until it's complete with no other processes running in the mean time.  To change this, a check could be made to ensure that one process can only hold the CPU for a specified number of dispatches.  This code was not neccessarily set up in a condusive manner so it was not implemented.
+
+	That being said, the overall algorithm is good with the exception listed above.  It will be as fair among the priority levels, eventually giving way to the lower priorities if they have been neglected for some time.

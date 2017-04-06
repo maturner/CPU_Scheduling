@@ -1,8 +1,9 @@
 /*************************************************************************
 * Program: CpuScheduler
-* Description:
+* Description: mimics a cpu scheduler that can implement one of four 
+			   scheduling algorithms using next event simulation.
 * Author: Marcus Turner
-* Date: March 5, 2017
+* Date: April 6, 2017
 *************************************************************************/
 
 #include <iostream>
